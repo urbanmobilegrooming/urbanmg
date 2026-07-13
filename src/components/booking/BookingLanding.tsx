@@ -517,10 +517,13 @@ function BookingFormInner({
     return true;
   }
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   async function handleSubmit() {
     setSaving(true);
+    setSubmitError(null);
     try {
-      await createPublicBooking({
+      const res = await createPublicBooking({
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
@@ -539,9 +542,14 @@ function BookingFormInner({
         notes: form.notes || null,
         price: selectedService?.base_price ?? 0,
       });
-      setSubmitted(true);
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(res.error ?? "Something went wrong — please try again");
+      }
     } catch (err) {
       console.error(err);
+      setSubmitError("Something went wrong — please try again");
     }
     setSaving(false);
   }
@@ -970,6 +978,9 @@ function BookingFormInner({
           </button>
         )}
       </div>
+      {submitError && (
+        <p className="mt-3 text-right text-sm font-semibold text-red-500">{submitError}</p>
+      )}
     </div>
   );
 }

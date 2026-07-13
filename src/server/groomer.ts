@@ -69,8 +69,11 @@ export async function listMyAppointments(profileId?: string | null): Promise<Gro
   }));
 }
 
+const GROOMER_STATUSES = ['confirmed', 'on_the_way', 'arrived', 'in_progress', 'completed', 'no_show'];
+
 export async function advanceAppointmentStatus(id: string, newStatus: string) {
   const { businessId } = await requireBusiness();
+  if (!GROOMER_STATUSES.includes(newStatus)) throw new Error('Invalid status');
   const updates: Record<string, unknown> = { status: newStatus };
   if (newStatus === 'in_progress') updates.checkinAt = new Date();
   if (newStatus === 'completed') updates.checkoutAt = new Date();

@@ -31,28 +31,34 @@ export async function createPublicBooking(input: {
   notes?: string | null;
   price?: number;
 }) {
-  await rateLimit('public-booking', 5, 60_000);
+  try {
+    await rateLimit('public-booking', 5, 60_000);
+  } catch {
+    return { ok: false as const, error: 'Too many requests — please try again in a minute' };
+  }
 
   if (!input.first_name?.trim() || !input.last_name?.trim()) {
-    throw new Error('Name required');
+    return { ok: false as const, error: 'Name is required' };
   }
-  if (!input.pet_name?.trim()) throw new Error('Pet name required');
-  if (input.weight != null && (input.weight < 0 || input.weight > 400)) throw new Error('Invalid weight');
+  if (!input.pet_name?.trim()) return { ok: false as const, error: 'Pet name is required' };
+  if (input.weight != null && (input.weight < 0 || input.weight > 400)) return { ok: false as const, error: 'Invalid weight' };
 
   const phoneDigits = (input.phone ?? '').replace(/\D/g, '');
-  if (phoneDigits.length < 10) throw new Error('Invalid phone number');
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) return { ok: false as const, error: 'Please enter a valid phone number' };
 
   if (input.email && !EMAIL_RE.test(input.email)) {
-    throw new Error('Invalid email');
+    return { ok: false as const, error: 'Please enter a valid email' };
   }
   if (!UUID_RE.test(input.service_id)) {
-    throw new Error('Invalid service');
+    return { ok: false as const, error: 'Invalid service' };
   }
   if (input.staff_id && !UUID_RE.test(input.staff_id)) {
-    throw new Error('Invalid staff');
+    return { ok: false as const, error: 'Invalid staff' };
   }
-  if (!DATE_RE.test(input.date)) throw new Error('Invalid date');
-  if (!TIME_RE.test(input.time)) throw new Error('Invalid time');
+  if (!DATE_RE.test(input.date)) return { ok: false as const, error: 'Invalid date' };
+  if (!TIME_RE.test(input.time)) return { ok: false as const, error: 'Invalid time' };
+  const today = new Date().toISOString().split('T')[0];
+  if (input.date < today) return { ok: false as const, error: 'Please pick a date in the future' };
 
   // Look up the service to derive its business — bookings must be tied to
   // the same business as the service they reference.
@@ -61,7 +67,7 @@ export async function createPublicBooking(input: {
     .from(services)
     .where(eq(services.id, input.service_id))
     .limit(1);
-  if (!svc || !svc.businessId) throw new Error('Service not found');
+  if (!svc || !svc.businessId) return { ok: false as const, error: 'Service not found' };
   const businessId = svc.businessId;
 
   // el precio nunca se confía del cliente: debe coincidir con el precio base
@@ -88,35 +94,65 @@ export async function createPublicBooking(input: {
       .from(staff)
       .where(and(eq(staff.id, input.staff_id), eq(staff.businessId, businessId)))
       .limit(1);
-    if (!st) throw new Error('Invalid staff');
+    if (!st) return { ok: false as const, error: 'Invalid staff' };
   }
 
-  const [client] = await db
-    .insert(clients)
-    .values({
-      firstName: input.first_name.trim(),
-      lastName: input.last_name.trim(),
-      phone: input.phone,
-      email: input.email ?? null,
-      address: input.address ?? null,
-      city: input.city ?? 'Miami',
-      state: 'FL',
-      zip: input.zip ?? null,
-      businessId,
-    })
-    .returning();
+  // reutiliza el cliente si ya existe con ese teléfono (evita duplicados)
+  let [client] = await db
+    .select()
+    .from(clients)
+    .where(and(eq(clients.phone, input.phone), eq(clients.businessId, businessId)))
+    .limit(1);
+  if (!client) {
+    [client] = await db
+      .insert(clients)
+      .values({
+        firstName: clamp(input.first_name, 80)!,
+        lastName: clamp(input.last_name, 80)!,
+        phone: clamp(input.phone, 25),
+        email: clamp(input.email, 120),
+        address: clamp(input.address, 200),
+        city: clamp(input.city, 80) ?? 'Miami',
+        state: 'FL',
+        zip: clamp(input.zip, 12),
+        businessId,
+      })
+      .returning();
+  }
 
-  const [pet] = await db
-    .insert(pets)
-    .values({
-      clientId: client.id,
-      name: input.pet_name.trim(),
-      species: input.species ?? 'dog',
-      breed: input.breed ?? null,
-      weightLbs: input.weight != null ? String(input.weight) : null,
-      businessId,
-    })
-    .returning();
+  // idempotencia: doble submit de la misma reserva no duplica
+  const [dupe] = await db
+    .select({ id: appointments.id })
+    .from(appointments)
+    .where(and(
+      eq(appointments.clientId, client.id),
+      eq(appointments.date, input.date),
+      eq(appointments.startTime, input.time),
+      eq(appointments.businessId, businessId),
+    ))
+    .limit(1);
+  if (dupe) return { ok: true as const };
+
+  // reutiliza la mascota del cliente si coincide por nombre
+  const petName = clamp(input.pet_name, 80)!;
+  let [pet] = await db
+    .select()
+    .from(pets)
+    .where(and(eq(pets.clientId, client.id), eq(pets.name, petName)))
+    .limit(1);
+  if (!pet) {
+    [pet] = await db
+      .insert(pets)
+      .values({
+        clientId: client.id,
+        name: petName,
+        species: clamp(input.species, 30) ?? 'dog',
+        breed: clamp(input.breed, 80),
+        weightLbs: input.weight != null ? String(input.weight) : null,
+        businessId,
+      })
+      .returning();
+  }
 
   await db.insert(appointments).values({
     clientId: client.id,
@@ -130,7 +166,7 @@ export async function createPublicBooking(input: {
     city: input.city ?? 'Miami',
     state: 'FL',
     zip: input.zip ?? null,
-    notes: input.notes ?? null,
+    notes: clamp(input.notes, 2000),
     businessId,
   });
 
@@ -152,5 +188,5 @@ export async function createPublicBooking(input: {
     businessId,
   });
 
-  return { ok: true };
+  return { ok: true as const };
 }

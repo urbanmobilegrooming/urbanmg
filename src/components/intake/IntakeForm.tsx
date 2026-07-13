@@ -38,8 +38,12 @@ export function IntakeForm() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await submitIntake({ ...owner, pets: petList });
-      setDone(true);
+      const res = await submitIntake({ ...owner, pets: petList });
+      if (res.ok) {
+        setDone(true);
+      } else {
+        toast.error(res.error ?? 'Something went wrong');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

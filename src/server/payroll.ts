@@ -75,8 +75,8 @@ export async function getPeriod(start: string, end: string) {
     .where(
       and(
         eq(payrollPeriods.businessId, businessId),
-        gte(payrollPeriods.startDate, start),
-        lte(payrollPeriods.endDate, end),
+        eq(payrollPeriods.startDate, start),
+        eq(payrollPeriods.endDate, end),
       ),
     )
     .limit(1);
@@ -105,6 +105,7 @@ export async function markPeriodPaid(start: string, end: string) {
           eq(payrollPeriods.businessId, businessId),
         ),
       );
+    revalidatePath('/dashboard/payroll');
     return { ...existing, status: 'paid', paid_at: paidAt };
   }
   const [row] = await db

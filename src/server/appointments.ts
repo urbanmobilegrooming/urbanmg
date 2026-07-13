@@ -200,8 +200,50 @@ export async function listAppointmentsForRange(
   );
 }
 
+const VALID_STATUSES = ['scheduled', 'confirmed', 'on_the_way', 'arrived', 'in_progress', 'completed', 'cancelled', 'no_show'];
+
+function endOf(start: string, end: string | null): number {
+  const [h, m] = start.split(':').map(Number);
+  if (end) {
+    const [eh, em] = end.split(':').map(Number);
+    return eh * 60 + em;
+  }
+  return h * 60 + m + 60; // sin end_time se asume 1h
+}
+
+function startOf(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
 export async function createAppointment(input: AppointmentInput) {
   const { businessId } = await requireBusiness();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error('Invalid date');
+  if (!/^\d{2}:\d{2}(:\d{2})?$/.test(input.start_time)) throw new Error('Invalid time');
+  if (input.price != null && (input.price < 0 || input.price > 100000)) throw new Error('Invalid price');
+  if (input.status && !VALID_STATUSES.includes(input.status)) throw new Error('Invalid status');
+
+  // evita doble booking del mismo groomer o van en horarios que se solapan
+  if (input.staff_id || input.van) {
+    const sameDay = await db
+      .select({ id: appointments.id, staffId: appointments.staffId, van: appointments.van, startTime: appointments.startTime, endTime: appointments.endTime, status: appointments.status })
+      .from(appointments)
+      .where(and(eq(appointments.businessId, businessId), eq(appointments.date, input.date)));
+    const newStart = startOf(input.start_time);
+    const newEnd = endOf(input.start_time, input.end_time ?? null);
+    for (const a of sameDay) {
+      if (['cancelled', 'no_show', 'completed'].includes(a.status)) continue;
+      const overlap = startOf(a.startTime) < newEnd && newStart < endOf(a.startTime, a.endTime);
+      if (!overlap) continue;
+      if (input.staff_id && a.staffId === input.staff_id) {
+        throw new Error('This groomer already has an appointment at that time');
+      }
+      if (input.van && a.van === input.van) {
+        throw new Error('This van is already booked at that time');
+      }
+    }
+  }
+
   const [row] = await db
     .insert(appointments)
     .values({
@@ -230,6 +272,7 @@ export async function createAppointment(input: AppointmentInput) {
 
 export async function updateAppointmentStatus(id: string, status: string) {
   const { businessId } = await requireBusiness();
+  if (!VALID_STATUSES.includes(status)) throw new Error('Invalid status');
   const updates: Partial<typeof appointments.$inferInsert> = { status, updatedAt: new Date() };
   if (status === 'in_progress') updates.checkinAt = new Date();
   if (status === 'completed') updates.checkoutAt = new Date();
@@ -239,6 +282,13 @@ export async function updateAppointmentStatus(id: string, status: string) {
     .where(
       and(eq(appointments.id, id), eq(appointments.businessId, businessId)),
     );
+  // mantiene las líneas de servicio en sincronía con la cita
+  if (['completed', 'cancelled', 'no_show'].includes(status)) {
+    await db
+      .update(appointmentServices)
+      .set({ status })
+      .where(eq(appointmentServices.appointmentId, id));
+  }
   revalidatePath('/dashboard/appointments');
   revalidatePath('/dashboard/routes');
 }

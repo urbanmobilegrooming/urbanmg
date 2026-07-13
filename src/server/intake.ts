@@ -37,12 +37,16 @@ export async function submitIntake(input: {
   pets: IntakePetInput[];
   notes?: string | null;
 }) {
-  await rateLimit('public-intake', 5, 60_000);
+  try {
+    await rateLimit('public-intake', 5, 60_000);
+  } catch {
+    return { ok: false as const, error: 'Too many requests — please try again in a minute' };
+  }
 
-  if (!input.first_name?.trim() || !input.last_name?.trim()) throw new Error('Name required');
+  if (!input.first_name?.trim() || !input.last_name?.trim()) return { ok: false as const, error: 'Name is required' };
   const phoneDigits = (input.phone ?? '').replace(/\D/g, '');
-  if (phoneDigits.length < 10 || phoneDigits.length > 15) throw new Error('Invalid phone number');
-  if (input.email && !EMAIL_RE.test(input.email)) throw new Error('Invalid email');
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) return { ok: false as const, error: 'Please enter a valid phone number' };
+  if (input.email && !EMAIL_RE.test(input.email)) return { ok: false as const, error: 'Please enter a valid email' };
   const petList = (input.pets ?? [])
     .filter((p) => p.name?.trim())
     .slice(0, 6)
@@ -53,7 +57,7 @@ export async function submitIntake(input: {
       weight_lbs: p.weight_lbs != null && p.weight_lbs >= 0 && p.weight_lbs <= 400 ? p.weight_lbs : null,
       notes: clamp(p.notes, 500) ?? undefined,
     }));
-  if (!petList.length) throw new Error('At least one pet is required');
+  if (!petList.length) return { ok: false as const, error: 'Please add at least one pet with a name' };
 
   const businessId = await defaultBusinessId();
 
@@ -92,7 +96,7 @@ export async function submitIntake(input: {
     businessId,
   });
 
-  return { id: submission.id };
+  return { ok: true as const, id: submission.id };
 }
 
 export async function listIntakeSubmissions() {

@@ -1,6 +1,6 @@
 'use server';
 
-import { and, desc, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import {
@@ -229,19 +229,37 @@ export async function createInvoiceFromAppointment(input: {
     .limit(1);
   if (!apt) throw new Error('Appointment not found');
 
+  // Los montos se recalculan en el servidor: nunca se confía en los del cliente
+  for (const it of input.items) {
+    if (it.quantity < 0 || it.quantity > 1000 || it.unit_price < 0 || it.unit_price > 100000) {
+      throw new Error('Invalid line item amounts');
+    }
+  }
+  const subtotal = Math.round(input.items.reduce((s, it) => s + it.quantity * it.unit_price, 0) * 100) / 100;
+  const tax = Number(input.tax);
+  if (!Number.isFinite(tax) || tax < 0 || tax > subtotal) throw new Error('Invalid tax');
+  const total = Math.round((subtotal + tax) * 100) / 100;
+
+  // número de factura generado en el servidor (evita colisiones del cliente)
+  const [{ count: invCount }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(invoices)
+    .where(eq(invoices.businessId, businessId));
+  const invoiceNumber = `INV-${new Date().getFullYear()}-${String(invCount + 1).padStart(4, '0')}`;
+
   const now = new Date();
   const [inv] = await db
     .insert(invoices)
     .values({
       appointmentId: input.appointment_id,
       clientId: input.client_id,
-      invoiceNumber: input.invoice_number,
-      subtotal: String(input.subtotal),
-      tax: String(input.tax),
-      total: String(input.total),
+      invoiceNumber,
+      subtotal: String(subtotal),
+      tax: String(tax),
+      total: String(total),
       status: 'paid',
       paymentMethod: input.payment_method,
-      paidAmount: String(input.total),
+      paidAmount: String(total),
       paidAt: now,
       dueDate: now.toISOString().split('T')[0],
       businessId,
@@ -256,7 +274,7 @@ export async function createInvoiceFromAppointment(input: {
         description: it.description,
         quantity: String(it.quantity),
         unitPrice: String(it.unit_price),
-        total: String(it.total),
+        total: String(Math.round(it.quantity * it.unit_price * 100) / 100),
         sortOrder: it.sort_order,
       }))
     );
@@ -264,7 +282,7 @@ export async function createInvoiceFromAppointment(input: {
 
   await db.insert(invoicePayments).values({
     invoiceId: inv.id,
-    amount: String(input.total),
+    amount: String(total),
     paymentMethod: input.payment_method,
     paidAt: now,
   });
