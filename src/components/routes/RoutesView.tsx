@@ -11,7 +11,7 @@ interface Appointment {
   date: string;
   start_time: string;
   status: string;
-  van_id: string | null;
+  van: string | null;
   address: string | null;
   city: string | null;
   price: number | null;
@@ -54,17 +54,17 @@ export function RoutesView({
 }) {
   const [dateFilter, setDateFilter] = useState(today);
 
-  function getVanAppointments(vanId: string) {
-    return appointments.filter((a) => a.van_id === vanId);
+  function getVanAppointments(vanName: string) {
+    return appointments.filter((a) => a.van === vanName);
   }
 
-  const unassigned = appointments.filter((a) => !a.van_id);
+  const unassigned = appointments.filter((a) => !a.van || !vans.some((v) => v.name === a.van));
   const totalRevenue = appointments
     .filter((a) => a.price)
     .reduce((sum, a) => sum + (a.price ?? 0), 0);
 
   function renderVanColumn(van: Van, colorClass: string) {
-    const items = getVanAppointments(van.id);
+    const items = getVanAppointments(van.name);
     const vanRevenue = items.reduce((sum, a) => sum + (a.price ?? 0), 0);
 
     return (

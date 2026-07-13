@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,11 +80,15 @@ export function AppointmentsList({
   clients,
   services,
   staff,
+  initialClientId,
+  initialPetId,
 }: {
   appointments: Appointment[];
   clients: Client[];
   services: Service[];
   staff: StaffMember[];
+  initialClientId?: string | null;
+  initialPetId?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -105,6 +109,16 @@ export function AppointmentsList({
     notes: "",
   });
   const router = useRouter();
+
+  // deep-link desde Rebooking: abre el modal con cliente/mascota preseleccionados
+  useEffect(() => {
+    if (initialClientId && clients.some((c) => c.id === initialClientId)) {
+      selectClient(initialClientId);
+      if (initialPetId) setSelectedPets([initialPetId]);
+      setOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialClientId, initialPetId]);
 
   const selectedClient = clients.find((c) => c.id === form.client_id);
 

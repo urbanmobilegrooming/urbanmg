@@ -125,7 +125,7 @@ export async function createPublicBooking(input: {
     staffId: input.staff_id ?? null,
     date: input.date,
     startTime: input.time,
-    price: input.price != null ? String(input.price) : null,
+    price: price != null ? String(price) : null,
     address: input.address ?? null,
     city: input.city ?? 'Miami',
     state: 'FL',

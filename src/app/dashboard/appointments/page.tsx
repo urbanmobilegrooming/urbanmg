@@ -6,7 +6,12 @@ import { listStaff } from "@/server/staff";
 
 export const metadata = { title: "Appointments" };
 
-export default async function AppointmentsPage() {
+export default async function AppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ client?: string; pet?: string }>;
+}) {
+  const { client, pet } = await searchParams;
   const [appointments, clients, services, staff] = await Promise.all([
     listAppointments(100),
     listClients(),
@@ -25,6 +30,8 @@ export default async function AppointmentsPage() {
         clients={clients}
         services={services}
         staff={staff}
+        initialClientId={client ?? null}
+        initialPetId={pet ?? null}
       />
     </div>
   );

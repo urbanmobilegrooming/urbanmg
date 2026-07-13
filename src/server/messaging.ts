@@ -11,6 +11,7 @@ import {
   messages,
 } from '@/lib/db/schema';
 import { requireBusiness } from '@/lib/auth-server';
+import { sendSms, sendWhatsApp } from '@/lib/messaging';
 
 type ClientRow = typeof clients.$inferSelect;
 
@@ -125,16 +126,34 @@ export async function sendMessage(input: {
       .limit(1);
     if (!tpl) throw new Error('Template not found');
   }
+  // envío real vía Twilio si está configurado; si no, queda registrado como pending
+  let status = 'pending';
+  const [client] = await db
+    .select({ phone: clients.phone })
+    .from(clients)
+    .where(eq(clients.id, input.client_id))
+    .limit(1);
+  if (client?.phone) {
+    const result =
+      input.channel === 'whatsapp'
+        ? await sendWhatsApp(client.phone, input.body)
+        : await sendSms(client.phone, input.body);
+    status = result.sent ? 'sent' : result.error === 'twilio_not_configured' ? 'pending' : 'failed';
+  } else {
+    status = 'failed';
+  }
+
   await db.insert(messages).values({
     clientId: input.client_id,
     body: input.body,
     channel: input.channel,
     direction: 'outbound',
-    status: 'sent',
+    status,
     templateId: input.template_id ?? null,
     sentAt: new Date(),
   });
   revalidatePath('/dashboard/messages');
+  return { status };
 }
 
 // ----- agreement templates -----
