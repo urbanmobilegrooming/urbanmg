@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, PawPrint, Scissors, Calendar,
   DollarSign, Truck, BarChart3, Settings, UserCircle, Shield, ClockAlert,
-  MessageSquare, FileText, Package,
+  MessageSquare, FileText, Package, RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Role, roleAccess } from "@/lib/roles";
@@ -19,6 +19,7 @@ const allNavItems = [
   { label: "Appointments", href: "/dashboard/appointments", icon: Calendar },
   { label: "Staff", href: "/dashboard/staff", icon: UserCircle },
   { label: "Wait List", href: "/dashboard/waitlist", icon: ClockAlert },
+  { label: "Rebooking", href: "/dashboard/rebooking", icon: RotateCcw },
   { label: "Billing", href: "/dashboard/billing", icon: DollarSign },
   { label: "Routes", href: "/dashboard/routes", icon: Truck },
   { label: "Payroll", href: "/dashboard/payroll", icon: DollarSign },

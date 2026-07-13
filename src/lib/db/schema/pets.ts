@@ -1,4 +1,4 @@
-import { boolean, date, jsonb, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, integer, jsonb, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { businesses } from './business';
 import { clients } from './clients';
 
@@ -14,6 +14,7 @@ export const pets = pgTable('pets', {
   isNeutered: boolean('is_neutered').notNull().default(false),
   temperament: text('temperament'),
   groomingNotes: text('grooming_notes'),
+  groomingFrequencyWeeks: integer('grooming_frequency_weeks'),
   medicalNotes: text('medical_notes'),
   isActive: boolean('is_active').notNull().default(true),
   clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),

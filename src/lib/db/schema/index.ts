@@ -15,3 +15,4 @@ export * from './training';
 export * from './wait_list';
 export * from './activity';
 export * from './loyalty';
+export * from './tracking';

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Car, Zap, MapPin, Phone, Map, LogIn, CheckCircle, Save, List, Calendar, RefreshCw, Scissors, Info, Clock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Car, Zap, MapPin, Phone, Map, LogIn, CheckCircle, Save, List, Calendar, RefreshCw, Scissors, Info, Clock, Navigation, Share2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { advanceAppointmentStatus, saveAppointmentNote, type GroomerAppointmentRow } from "@/server/groomer";
+import { startTracking, updateTrackingPosition, endTracking } from "@/server/tracking";
 
 function formatTime(t: string) {
   if (!t) return "";
@@ -33,10 +34,16 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
   const [reportNote, setReportNote] = useState("");
   const [elapsed, setElapsed] = useState("0:00");
   const [saving, setSaving] = useState(false);
+  const [tracking, setTracking] = useState<{ aptId: string; sessionId: string; token: string } | null>(null);
+  const lastPingRef = useRef(0);
 
   const currentApt = useMemo(() => {
     if (currentId) return todayApts.find((a) => a.id === currentId) ?? null;
-    return todayApts.find((a) => a.status === "in_progress") ?? todayApts.find((a) => a.status === "scheduled" || a.status === "confirmed") ?? null;
+    return (
+      todayApts.find((a) => ["in_progress", "on_the_way", "arrived"].includes(a.status)) ??
+      todayApts.find((a) => a.status === "scheduled" || a.status === "confirmed") ??
+      null
+    );
   }, [todayApts, currentId]);
 
   const earnings = todayApts.filter((a) => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0);
@@ -66,6 +73,80 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
     }
   }
 
+  // reanuda la sesión si la cita ya está on_the_way (p.ej. tras recargar)
+  useEffect(() => {
+    if (currentApt?.status === "on_the_way" && tracking?.aptId !== currentApt.id) {
+      startTracking(currentApt.id)
+        .then((s) => setTracking({ aptId: currentApt.id, sessionId: s.sessionId, token: s.token }))
+        .catch(() => {});
+    }
+  }, [currentApt, tracking]);
+
+  // publica la posición GPS mientras hay tracking activo
+  useEffect(() => {
+    if (!tracking || !("geolocation" in navigator)) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const now = Date.now();
+        if (now - lastPingRef.current < 15000) return;
+        lastPingRef.current = now;
+        updateTrackingPosition(tracking.sessionId, pos.coords.latitude, pos.coords.longitude).catch(() => {});
+      },
+      () => toast.error("Enable location to share live tracking"),
+      { enableHighAccuracy: true, maximumAge: 10000 },
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [tracking]);
+
+  async function goOnTheWay(id: string) {
+    setSaving(true);
+    try {
+      const s = await startTracking(id);
+      setTracking({ aptId: id, sessionId: s.sessionId, token: s.token });
+      toast.success("Client can now track you live");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function markArrived(id: string) {
+    setSaving(true);
+    try {
+      await endTracking(id, "arrived");
+      setTracking(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function trackingUrl(token: string) {
+    return `${window.location.origin}/track/${token}`;
+  }
+
+  function shareWhatsApp(token: string, phone: string | null | undefined, petName: string | undefined) {
+    const msg = `Hi! Your groomer is on the way to pamper ${petName ?? "your pet"}. Track the van live here: ${trackingUrl(token)}`;
+    const digits = (phone ?? "").replace(/\D/g, "");
+    const url = digits
+      ? `https://wa.me/${digits.length === 10 ? "1" + digits : digits}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  }
+
+  async function copyTrackingLink(token: string) {
+    try {
+      await navigator.clipboard.writeText(trackingUrl(token));
+      toast.success("Tracking link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
+  }
+
   async function saveNote(id: string) {
     if (!reportNote.trim()) return;
     setSaving(true);
@@ -84,6 +165,8 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
     const map: Record<string, string> = {
       scheduled: "bg-blue-100 text-blue-700",
       confirmed: "bg-indigo-100 text-indigo-700",
+      on_the_way: "bg-sky-100 text-sky-700",
+      arrived: "bg-amber-100 text-amber-700",
       in_progress: "bg-yellow-100 text-yellow-700",
       completed: "bg-green-100 text-green-700",
       cancelled: "bg-red-100 text-red-600",
@@ -178,6 +261,24 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
               </div>
               <div className="space-y-2 pt-1">
                 {(currentApt.status === "scheduled" || currentApt.status === "confirmed") && (
+                  <Button disabled={saving} onClick={() => goOnTheWay(currentApt.id)} className="w-full rounded-2xl bg-blue-600 py-3.5 text-base font-black text-white hover:bg-blue-700"><Navigation className="mr-2 h-4 w-4" />I&apos;m On The Way</Button>
+                )}
+                {currentApt.status === "on_the_way" && tracking?.aptId === currentApt.id && (
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-800">
+                      <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                      Sharing live location with client
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => shareWhatsApp(tracking.token, currentApt.clients?.phone, currentApt.pets?.name)} className="flex items-center justify-center gap-1.5 rounded-xl bg-green-500 py-2.5 text-xs font-bold text-white"><Share2 className="h-3.5 w-3.5" />Send via WhatsApp</button>
+                      <button onClick={() => copyTrackingLink(tracking.token)} className="flex items-center justify-center gap-1.5 rounded-xl border border-blue-300 bg-white py-2.5 text-xs font-bold text-blue-700"><Copy className="h-3.5 w-3.5" />Copy Link</button>
+                    </div>
+                  </div>
+                )}
+                {currentApt.status === "on_the_way" && (
+                  <Button disabled={saving} onClick={() => markArrived(currentApt.id)} className="w-full rounded-2xl bg-[#f2c037] py-3.5 text-base font-black text-[#1a0a3e] hover:brightness-105"><MapPin className="mr-2 h-4 w-4" />I&apos;ve Arrived</Button>
+                )}
+                {currentApt.status === "arrived" && (
                   <Button disabled={saving} onClick={() => advance(currentApt.id, "in_progress")} className="w-full rounded-2xl bg-[#f2c037] py-3.5 text-base font-black text-[#1a0a3e] hover:brightness-105"><LogIn className="mr-2 h-4 w-4" />Start Grooming</Button>
                 )}
                 {currentApt.status === "in_progress" && (
