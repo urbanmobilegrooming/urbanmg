@@ -80,7 +80,7 @@ export default function LoginPage() {
             width={240}
             height={66}
             priority
-            className="drop-shadow-[0_0_25px_rgba(242,192,55,0.3)]"
+            className="brightness-0 invert drop-shadow-[0_0_25px_rgba(242,192,55,0.3)]"
           />
         </div>
 
