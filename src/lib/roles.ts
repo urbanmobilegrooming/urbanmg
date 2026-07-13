@@ -5,6 +5,7 @@ export const roleAccess: Record<Role, string[]> = {
   admin: [
     "/dashboard",
     "/dashboard/clients",
+    "/dashboard/intake",
     "/dashboard/pets",
     "/dashboard/services",
     "/dashboard/appointments",
@@ -25,6 +26,7 @@ export const roleAccess: Record<Role, string[]> = {
   manager: [
     "/dashboard",
     "/dashboard/clients",
+    "/dashboard/intake",
     "/dashboard/pets",
     "/dashboard/services",
     "/dashboard/appointments",
@@ -43,6 +45,7 @@ export const roleAccess: Record<Role, string[]> = {
   receptionist: [
     "/dashboard",
     "/dashboard/clients",
+    "/dashboard/intake",
     "/dashboard/pets",
     "/dashboard/services",
     "/dashboard/appointments",

@@ -3,7 +3,7 @@
 import { and, eq, gte, ne } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { appointments, clients, pets, services, staff } from '@/lib/db/schema';
+import { appointments, clients, notifications, pets, services, staff } from '@/lib/db/schema';
 import { requireBusiness } from '@/lib/auth-server';
 
 export type GroomerAppointmentRow = {
@@ -78,6 +78,24 @@ export async function advanceAppointmentStatus(id: string, newStatus: string) {
     .update(appointments)
     .set(updates)
     .where(and(eq(appointments.id, id), eq(appointments.businessId, businessId)));
+
+  if (newStatus === 'completed') {
+    const [row] = await db
+      .select({ client_first: clients.firstName, client_last: clients.lastName, pet_name: pets.name })
+      .from(appointments)
+      .leftJoin(clients, eq(appointments.clientId, clients.id))
+      .leftJoin(pets, eq(appointments.petId, pets.id))
+      .where(eq(appointments.id, id))
+      .limit(1);
+    await db.insert(notifications).values({
+      type: 'completed',
+      title: 'Appointment completed',
+      body: row ? `${row.pet_name ?? 'Pet'} · ${row.client_first ?? ''} ${row.client_last ?? ''}`.trim() : null,
+      href: '/dashboard/appointments',
+      businessId,
+    });
+  }
+
   revalidatePath('/dashboard/groomer-app');
 }
 

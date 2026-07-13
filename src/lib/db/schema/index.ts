@@ -16,3 +16,4 @@ export * from './wait_list';
 export * from './activity';
 export * from './loyalty';
 export * from './tracking';
+export * from './intake';

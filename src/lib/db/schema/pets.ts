@@ -33,6 +33,28 @@ export const petPhotos = pgTable('pet_photos', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const petMedications = pgTable('pet_medications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  petId: uuid('pet_id').notNull().references(() => pets.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  dosage: text('dosage'),
+  frequency: text('frequency'),
+  notes: text('notes'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const petVetInfo = pgTable('pet_vet_info', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  petId: uuid('pet_id').notNull().unique().references(() => pets.id, { onDelete: 'cascade' }),
+  vetName: text('vet_name'),
+  clinicName: text('clinic_name'),
+  phone: text('phone'),
+  address: text('address'),
+  notes: text('notes'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const petVaccines = pgTable('pet_vaccines', {
   id: uuid('id').primaryKey().defaultRandom(),
   petId: uuid('pet_id').notNull().references(() => pets.id, { onDelete: 'cascade' }),

@@ -3,7 +3,7 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { petPhotos, pets, petVaccines } from '@/lib/db/schema';
+import { petMedications, petPhotos, pets, petVaccines, petVetInfo } from '@/lib/db/schema';
 import { requireBusiness } from '@/lib/auth-server';
 
 export type PetInput = {
@@ -240,5 +240,97 @@ export async function deletePhoto(id: string, petId: string) {
   await db
     .delete(petPhotos)
     .where(and(eq(petPhotos.id, id), eq(petPhotos.petId, petId)));
+  revalidatePath(`/dashboard/pets/${petId}`);
+}
+
+// ----- Pet medications -----
+export type MedicationInput = {
+  name: string;
+  dosage?: string | null;
+  frequency?: string | null;
+  notes?: string | null;
+};
+
+export async function listMedications(petId: string) {
+  const { businessId } = await requireBusiness();
+  if (!(await petBelongsToBusiness(petId, businessId))) return [];
+  const rows = await db
+    .select()
+    .from(petMedications)
+    .where(and(eq(petMedications.petId, petId), eq(petMedications.isActive, true)))
+    .orderBy(desc(petMedications.createdAt));
+  return rows.map((m) => ({
+    id: m.id,
+    name: m.name,
+    dosage: m.dosage,
+    frequency: m.frequency,
+    notes: m.notes,
+  }));
+}
+
+export async function addMedication(petId: string, input: MedicationInput) {
+  const { businessId } = await requireBusiness();
+  if (!(await petBelongsToBusiness(petId, businessId))) throw new Error('Pet not found');
+  if (!input.name?.trim()) throw new Error('Name required');
+  await db.insert(petMedications).values({
+    petId,
+    name: input.name.trim(),
+    dosage: input.dosage ?? null,
+    frequency: input.frequency ?? null,
+    notes: input.notes ?? null,
+  });
+  revalidatePath(`/dashboard/pets/${petId}`);
+}
+
+export async function deleteMedication(id: string, petId: string) {
+  const { businessId } = await requireBusiness();
+  if (!(await petBelongsToBusiness(petId, businessId))) throw new Error('Pet not found');
+  await db
+    .update(petMedications)
+    .set({ isActive: false })
+    .where(and(eq(petMedications.id, id), eq(petMedications.petId, petId)));
+  revalidatePath(`/dashboard/pets/${petId}`);
+}
+
+// ----- Pet vet info -----
+export type VetInfoInput = {
+  vet_name?: string | null;
+  clinic_name?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
+};
+
+export async function getVetInfo(petId: string) {
+  const { businessId } = await requireBusiness();
+  if (!(await petBelongsToBusiness(petId, businessId))) return null;
+  const [row] = await db.select().from(petVetInfo).where(eq(petVetInfo.petId, petId)).limit(1);
+  if (!row) return null;
+  return {
+    vet_name: row.vetName,
+    clinic_name: row.clinicName,
+    phone: row.phone,
+    address: row.address,
+    notes: row.notes,
+  };
+}
+
+export async function saveVetInfo(petId: string, input: VetInfoInput) {
+  const { businessId } = await requireBusiness();
+  if (!(await petBelongsToBusiness(petId, businessId))) throw new Error('Pet not found');
+  const values = {
+    vetName: input.vet_name?.trim() || null,
+    clinicName: input.clinic_name?.trim() || null,
+    phone: input.phone?.trim() || null,
+    address: input.address?.trim() || null,
+    notes: input.notes?.trim() || null,
+    updatedAt: new Date(),
+  };
+  const [existing] = await db.select().from(petVetInfo).where(eq(petVetInfo.petId, petId)).limit(1);
+  if (existing) {
+    await db.update(petVetInfo).set(values).where(eq(petVetInfo.petId, petId));
+  } else {
+    await db.insert(petVetInfo).values({ petId, ...values });
+  }
   revalidatePath(`/dashboard/pets/${petId}`);
 }

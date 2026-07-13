@@ -6,8 +6,9 @@ import { Dog, Cat, Weight, Cake, User, ArrowLeft, Scissors, Check, X } from "luc
 import { Button } from "@/components/ui/button";
 import { PetVaccines } from "@/components/pets/PetVaccines";
 import { PetPhotos } from "@/components/pets/PetPhotos";
+import { PetMedical } from "@/components/pets/PetMedical";
 import { formatDate, formatTime, formatCurrency } from "@/lib/format";
-import { getPet, listPhotos, listVaccines } from "@/server/pets";
+import { getPet, getVetInfo, listMedications, listPhotos, listVaccines } from "@/server/pets";
 import { getClient } from "@/server/clients";
 import { listAppointmentsForPet } from "@/server/appointments";
 
@@ -36,11 +37,13 @@ export default async function PetDetailPage({
   const pet = await getPet(id);
   if (!pet) notFound();
 
-  const [vaccines, photos, appointments, owner] = await Promise.all([
+  const [vaccines, photos, appointments, owner, medications, vetInfo] = await Promise.all([
     listVaccines(id),
     listPhotos(id),
     listAppointmentsForPet(id, 30),
     pet.client_id ? getClient(pet.client_id) : Promise.resolve(null),
+    listMedications(id),
+    getVetInfo(id),
   ]);
 
   const age = pet.date_of_birth
@@ -165,6 +168,7 @@ export default async function PetDetailPage({
       </div>
 
       <PetVaccines petId={id} vaccines={vaccines} />
+      <PetMedical petId={id} medications={medications} vetInfo={vetInfo} />
       <PetPhotos petId={id} photos={photos} />
 
       <Card>

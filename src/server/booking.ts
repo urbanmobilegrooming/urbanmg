@@ -2,7 +2,7 @@
 
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { appointments, clients, pets, services } from '@/lib/db/schema';
+import { appointments, clients, leads, notifications, pets, services } from '@/lib/db/schema';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,6 +99,24 @@ export async function createPublicBooking(input: {
     state: 'FL',
     zip: input.zip ?? null,
     notes: input.notes ?? null,
+    businessId,
+  });
+
+  await db.insert(leads).values({
+    name: `${input.first_name.trim()} ${input.last_name.trim()}`,
+    phone: input.phone,
+    email: input.email ?? null,
+    source: 'booking',
+    status: 'converted',
+    clientId: client.id,
+    businessId,
+  });
+
+  await db.insert(notifications).values({
+    type: 'booking',
+    title: 'New online booking',
+    body: `${input.first_name} ${input.last_name} · ${input.pet_name} · ${input.date} ${input.time}`,
+    href: '/dashboard/appointments',
     businessId,
   });
 

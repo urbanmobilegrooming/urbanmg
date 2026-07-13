@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User, ChevronLeft } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export function Topbar() {
   const router = useRouter();
@@ -53,6 +54,8 @@ export function Topbar() {
           />
         </div>
 
+        <NotificationBell />
+
         <DropdownMenu>
           <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[#e6b535] outline-none">
             <Avatar className="h-7 w-7">
@@ -74,7 +77,8 @@ export function Topbar() {
         </DropdownMenu>
       </div>
 
-      <div className="hidden w-full items-center justify-end sm:flex">
+      <div className="hidden w-full items-center justify-end gap-1 sm:flex">
+        <NotificationBell />
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#e6b535] outline-none">
             <Avatar className="h-8 w-8">

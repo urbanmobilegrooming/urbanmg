@@ -1,0 +1,20 @@
+{
+  "name": "Urban Groomer",
+  "short_name": "Urban Groomer",
+  "description": "Urban Mobile Grooming staff app — daily route, live tracking, and appointment flow.",
+  "start_url": "/dashboard/groomer-app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1a0a3e",
+  "theme_color": "#1a0a3e",
+  "orientation": "portrait",
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["business", "productivity"]
+}

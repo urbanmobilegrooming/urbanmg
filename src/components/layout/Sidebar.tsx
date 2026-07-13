@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, PawPrint, Scissors, Calendar,
   DollarSign, Truck, BarChart3, Settings, UserCircle, Shield, ClockAlert,
-  MessageSquare, FileText, Package, RotateCcw,
+  MessageSquare, FileText, Package, RotateCcw, UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Role, roleAccess } from "@/lib/roles";
@@ -14,6 +14,7 @@ import { type Role, roleAccess } from "@/lib/roles";
 const allNavItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Clients", href: "/dashboard/clients", icon: Users },
+  { label: "Intake & Leads", href: "/dashboard/intake", icon: UserPlus },
   { label: "Pets", href: "/dashboard/pets", icon: PawPrint },
   { label: "Services", href: "/dashboard/services", icon: Scissors },
   { label: "Appointments", href: "/dashboard/appointments", icon: Calendar },
