@@ -38,7 +38,7 @@ export function Topbar() {
       <div className="flex w-full items-center sm:hidden">
         <button
           onClick={() => router.back()}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#2C0F73] transition-colors hover:bg-[#e6b535]"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#2C0F73] transition-colors hover:bg-[#e5a818]"
         >
           <ChevronLeft size={22} />
         </button>
@@ -57,7 +57,7 @@ export function Topbar() {
         <NotificationBell />
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[#e6b535] outline-none">
+          <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[#e5a818] outline-none">
             <Avatar className="h-7 w-7">
               <AvatarFallback className="bg-[#2C0F73] text-[10px] font-bold text-white">
                 {initials}
@@ -80,7 +80,7 @@ export function Topbar() {
       <div className="hidden w-full items-center justify-end gap-1 sm:flex">
         <NotificationBell />
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#e6b535] outline-none">
+          <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#e5a818] outline-none">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-[#2C0F73] text-xs font-bold text-white">
                 {initials}

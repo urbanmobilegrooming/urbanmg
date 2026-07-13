@@ -15,11 +15,13 @@ import { useSession, signOut } from "@/lib/auth-client";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/clients": "Clients",
+  "/dashboard/intake": "Intake & Leads",
   "/dashboard/pets": "Pets",
   "/dashboard/services": "Services",
   "/dashboard/appointments": "Appointments",
   "/dashboard/staff": "Staff",
   "/dashboard/waitlist": "Wait List",
+  "/dashboard/rebooking": "Rebooking",
   "/dashboard/billing": "Billing",
   "/dashboard/routes": "Routes",
   "/dashboard/payroll": "Payroll",
@@ -30,6 +32,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard/discounts": "Discounts",
   "/dashboard/users": "Users",
   "/dashboard/settings": "Settings",
+  "/dashboard/settings/integrations": "Integrations",
+  "/dashboard/groomer-app": "Groomer App",
 };
 
 export function MobileHeader() {

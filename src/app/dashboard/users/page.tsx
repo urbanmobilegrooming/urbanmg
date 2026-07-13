@@ -3,6 +3,8 @@ import { UsersManager } from "@/components/users/UsersManager";
 import { getSession } from "@/lib/auth-server";
 import { getCurrentProfile, listProfiles } from "@/server/users";
 
+export const metadata = { title: "Users" };
+
 export default async function UsersPage() {
   const session = await getSession();
   if (!session) redirect("/login");

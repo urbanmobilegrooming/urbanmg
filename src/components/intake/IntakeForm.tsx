@@ -91,7 +91,7 @@ export function IntakeForm() {
               <input placeholder="City" className={inputCls} value={owner.city} onChange={(e) => setOwner({ ...owner, city: e.target.value })} />
               <input placeholder="ZIP" className={inputCls} value={owner.zip} onChange={(e) => setOwner({ ...owner, zip: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <select className={inputCls} value={owner.preferred_contact} onChange={(e) => setOwner({ ...owner, preferred_contact: e.target.value })}>
                 <option value="whatsapp">Prefer WhatsApp</option>
                 <option value="call">Prefer phone call</option>

@@ -3,6 +3,8 @@ import { listAppointmentsForDate } from "@/server/appointments";
 import { listStaff } from "@/server/staff";
 import { listVans } from "@/server/vans";
 
+export const metadata = { title: "Routes" };
+
 export default async function RoutesPage() {
   const today = new Date().toISOString().split("T")[0];
   const [appointments, staff, vans] = await Promise.all([

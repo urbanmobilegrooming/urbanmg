@@ -184,7 +184,7 @@ export function RebookingClient({ opportunities }: { opportunities: RebookingOpp
                     )}
                     <Link
                       href={`/dashboard/appointments?client=${o.client_id}&pet=${o.pet_id}`}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#f2c037] px-3 py-2 text-xs font-black text-[#1a0a3e] hover:brightness-105"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#f2c037] px-3 py-2 text-xs font-black text-[#1a0a3e] hover:bg-[#e5a818]"
                     >
                       <CalendarPlus className="h-3.5 w-3.5" />
                       Book

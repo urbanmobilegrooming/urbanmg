@@ -8,6 +8,8 @@ import Link from "next/link";
 import { ServiceHeatMap } from "@/components/dashboard/ServiceHeatMap";
 import { getDashboardData } from "@/server/dashboard";
 
+export const metadata = { title: "Dashboard" };
+
 export default async function DashboardPage() {
   const now = new Date();
   const data = await getDashboardData();

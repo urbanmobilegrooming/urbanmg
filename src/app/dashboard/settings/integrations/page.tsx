@@ -45,11 +45,12 @@ export default async function IntegrationsPage() {
                   </div>
                   <p className="mt-1 text-sm text-gray-500">{i.purpose}</p>
                   {!i.configured && (
-                    <p className="mt-2 text-[11px] text-gray-400">
-                      Needs: {i.requiredEnv.map((e) => (
-                        <code key={e} className="mr-1 rounded bg-gray-100 px-1 py-0.5">{e}</code>
+                    <div className="mt-2 flex flex-wrap gap-1 text-[11px] text-gray-400">
+                      <span>Needs:</span>
+                      {i.requiredEnv.map((e) => (
+                        <code key={e} className="break-all rounded bg-gray-100 px-1 py-0.5">{e}</code>
                       ))}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>

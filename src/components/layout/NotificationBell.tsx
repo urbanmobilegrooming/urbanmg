@@ -69,7 +69,7 @@ export function NotificationBell() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[#e6b535] outline-none">
+      <DropdownMenuTrigger className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-[#e5a818] outline-none">
         <Bell className="h-5 w-5 text-[#2C0F73]" />
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">

@@ -1,5 +1,7 @@
 import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
 
+export const metadata = { title: "Reports" };
+
 export default function ReportsPage() {
   return (
     <div className="space-y-6 p-6">

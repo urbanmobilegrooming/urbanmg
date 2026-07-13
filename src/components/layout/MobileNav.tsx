@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Calendar, Users, PawPrint, Scissors,
   Menu, X, UserCircle, DollarSign, Truck, BarChart3,
   Settings, Shield, ClockAlert, MessageSquare, FileText,
-  Package,
+  Package, UserPlus, RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Role, roleAccess } from "@/lib/roles";
@@ -25,11 +25,13 @@ const tabItems = [
 const allNavItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Clients", href: "/dashboard/clients", icon: Users },
+  { label: "Intake & Leads", href: "/dashboard/intake", icon: UserPlus },
   { label: "Pets", href: "/dashboard/pets", icon: PawPrint },
   { label: "Services", href: "/dashboard/services", icon: Scissors },
   { label: "Appointments", href: "/dashboard/appointments", icon: Calendar },
   { label: "Staff", href: "/dashboard/staff", icon: UserCircle },
   { label: "Wait List", href: "/dashboard/waitlist", icon: ClockAlert },
+  { label: "Rebooking", href: "/dashboard/rebooking", icon: RotateCcw },
   { label: "Billing", href: "/dashboard/billing", icon: DollarSign },
   { label: "Routes", href: "/dashboard/routes", icon: Truck },
   { label: "Payroll", href: "/dashboard/payroll", icon: DollarSign },

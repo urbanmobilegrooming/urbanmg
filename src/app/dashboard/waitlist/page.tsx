@@ -4,6 +4,8 @@ import { listActiveServices } from "@/server/services";
 import { listStaff } from "@/server/staff";
 import { listWaitList } from "@/server/wait_list";
 
+export const metadata = { title: "Wait List" };
+
 export default async function WaitListPage() {
   const [entries, clients, services, staff] = await Promise.all([
     listWaitList(),

@@ -3,6 +3,8 @@ import { RebookingClient } from "@/components/rebooking/RebookingClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Rebooking" };
+
 export default async function RebookingPage() {
   const opportunities = await listRebookingOpportunities();
 

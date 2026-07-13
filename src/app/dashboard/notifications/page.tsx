@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AlertTriangle, Calendar, CheckCircle, Clock, ArrowRight } from "lucide-react";
 import { getNotificationsSummary } from "@/server/notifications";
 
+export const metadata = { title: "Notifications" };
+
 export default async function NotificationsPage() {
   const { vaccineAlerts, upcomingAppts, waitlistCount } = await getNotificationsSummary();
   const empty = vaccineAlerts.length === 0 && upcomingAppts.length === 0 && waitlistCount === 0;

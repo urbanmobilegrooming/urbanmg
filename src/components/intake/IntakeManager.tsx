@@ -6,7 +6,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PawPrint, Check, X, Phone, Mail, MapPin, UserPlus, MessageCircle } from "lucide-react";
+import { PawPrint, Check, X, Phone, Mail, MapPin, UserPlus, MessageCircle, ExternalLink } from "lucide-react";
 import { approveIntake, rejectIntake, updateLeadStatus, type IntakePetInput } from "@/server/intake";
 
 type Submission = {
@@ -65,7 +65,7 @@ export function IntakeManager({ submissions, leads }: { submissions: Submission[
       toast.success("Client created from intake");
       router.push(`/dashboard/clients/${clientId}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(null);
     }
@@ -78,7 +78,7 @@ export function IntakeManager({ submissions, leads }: { submissions: Submission[
       toast.success("Intake rejected");
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setBusy(null);
     }
@@ -89,7 +89,7 @@ export function IntakeManager({ submissions, leads }: { submissions: Submission[
       await updateLeadStatus(id, status);
       router.refresh();
     } catch {
-      toast.error("Failed");
+      toast.error("Could not update lead status");
     }
   }
 
@@ -114,7 +114,8 @@ export function IntakeManager({ submissions, leads }: { submissions: Submission[
           target="_blank"
           className="rounded-xl border border-[#f2c037] px-4 py-2 text-sm font-bold text-[#b8901f] hover:bg-[#f2c037]/10"
         >
-          View public form ↗
+          View public form
+          <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
         </Link>
       </div>
 

@@ -2,6 +2,8 @@ import { ProductsManager } from "@/components/products/ProductsManager";
 import { listProducts } from "@/server/products";
 import { listAddons } from "@/server/services";
 
+export const metadata = { title: "Products" };
+
 export default async function ProductsPage() {
   const [products, addons] = await Promise.all([listProducts(), listAddons()]);
 

@@ -284,7 +284,7 @@ export function ClientsTable({ clients: initialClients }: { clients: Client[] })
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {client.city}, {client.state}
+                      {[client.city, client.state].filter(Boolean).join(", ") || "—"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

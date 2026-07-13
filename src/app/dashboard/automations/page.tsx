@@ -2,6 +2,8 @@ import { AutomationsClient } from "@/components/automations/AutomationsClient";
 import { listMessageTemplates, listMessages } from "@/server/messaging";
 import { listReminderSettings } from "@/server/marketing";
 
+export const metadata = { title: "Automations" };
+
 export default async function AutomationsPage() {
   const [templates, messages, reminders] = await Promise.all([
     listMessageTemplates(),

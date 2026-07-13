@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth-server";
 import { getCurrentProfile } from "@/server/users";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 
+export const metadata = { title: "Settings" };
+
 export default async function SettingsPage() {
   const session = await getSession();
   if (!session) redirect("/login");

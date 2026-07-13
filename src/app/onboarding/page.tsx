@@ -149,7 +149,7 @@ export default function OnboardingPage() {
 
           {step === 4 && (
             <div className="space-y-4 text-center">
-              <div className="text-4xl">🎉</div>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f2c037]"><Check className="h-7 w-7 text-[#1a0a3e]" /></div>
               <h2 className="text-lg font-bold text-white">Ready to go!</h2>
               <div className="space-y-2 rounded-xl bg-white/5 p-4 text-left text-sm">
                 <div className="flex justify-between"><span className="text-white/40">Business</span><span className="font-medium text-white">{form.business_name}</span></div>

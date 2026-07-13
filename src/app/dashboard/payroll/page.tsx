@@ -2,6 +2,8 @@ import { PayrollView } from "@/components/payroll/PayrollView";
 import { listAppointmentsForRange } from "@/server/appointments";
 import { listStaff } from "@/server/staff";
 
+export const metadata = { title: "Payroll" };
+
 export default async function PayrollPage() {
   const currentMonth = new Date();
   const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).toISOString().split("T")[0];

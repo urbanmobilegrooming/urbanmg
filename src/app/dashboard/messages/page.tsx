@@ -2,6 +2,8 @@ import { MessagingCenter } from "@/components/messages/MessagingCenter";
 import { listMessageTemplates, listMessages } from "@/server/messaging";
 import { listClients } from "@/server/clients";
 
+export const metadata = { title: "Messages" };
+
 export default async function MessagesPage() {
   const [templates, messages, clients] = await Promise.all([
     listMessageTemplates(),

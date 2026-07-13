@@ -1,6 +1,8 @@
 import { ActivityClient } from "@/components/activity/ActivityClient";
 import { listActivity } from "@/server/activity";
 
+export const metadata = { title: "Activity" };
+
 export default async function ActivityPage() {
   const entries = await listActivity({});
   return (

@@ -1,6 +1,8 @@
 import { StaffList } from "@/components/staff/StaffList";
 import { listStaff } from "@/server/staff";
 
+export const metadata = { title: "Staff" };
+
 export default async function StaffPage() {
   const staff = await listStaff();
   return (

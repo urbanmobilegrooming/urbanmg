@@ -2,6 +2,8 @@ import { AgreementsManager } from "@/components/agreements/AgreementsManager";
 import { listAgreementTemplates, listClientAgreements } from "@/server/messaging";
 import { listClients } from "@/server/clients";
 
+export const metadata = { title: "Agreements" };
+
 export default async function AgreementsPage() {
   const [templates, agreements, clients] = await Promise.all([
     listAgreementTemplates(),

@@ -1,6 +1,8 @@
 import { ServicesManager } from "@/components/services/ServicesManager";
 import { listCategories, listServices } from "@/server/services";
 
+export const metadata = { title: "Services" };
+
 export default async function ServicesPage() {
   const [categories, services] = await Promise.all([listCategories(), listServices()]);
 

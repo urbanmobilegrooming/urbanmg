@@ -4,6 +4,8 @@ import { clients, pets } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth-server";
 
+export const metadata = { title: "Pets" };
+
 export default async function PetsPage() {
   await requireSession();
   const rows = await db
@@ -37,8 +39,8 @@ export default async function PetsPage() {
   }));
 
   return (
-    <div>
-      <h1 className="mb-6 font-[family-name:var(--font-inter)] text-2xl font-bold text-gray-900">
+    <div className="space-y-6 p-6">
+      <h1 className="font-[family-name:var(--font-inter)] text-2xl font-bold text-gray-900">
         Pets
       </h1>
       <PetsGrid pets={out} />

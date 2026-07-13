@@ -1,6 +1,8 @@
 import { LoyaltyClient } from "@/components/loyalty/LoyaltyClient";
 import { getLoyaltySettings, listLoyaltyClients, listReferrals } from "@/server/loyalty";
 
+export const metadata = { title: "Loyalty" };
+
 export default async function LoyaltyPage() {
   const [clients, referrals, settings] = await Promise.all([listLoyaltyClients(), listReferrals(), getLoyaltySettings()]);
   return (

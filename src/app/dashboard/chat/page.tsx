@@ -2,6 +2,8 @@ import { ChatClient } from "@/components/chat/ChatClient";
 import { listChatMessages } from "@/server/chat";
 import { getSession } from "@/lib/auth-server";
 
+export const metadata = { title: "Chat" };
+
 export default async function ChatPage() {
   const session = await getSession();
   const messages = await listChatMessages();

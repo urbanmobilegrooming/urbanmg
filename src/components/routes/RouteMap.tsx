@@ -199,10 +199,10 @@ export function RouteMap({ appointments }: { appointments: Appointment[] }) {
                               <span className="text-sm font-bold">{stop.appointment.clients?.first_name} {stop.appointment.clients?.last_name}</span>
                             </div>
                             <div className="space-y-0.5 text-xs text-gray-500">
-                              <div>🐾 {stop.appointment.pets?.name} · {stop.appointment.services?.name}</div>
-                              <div>🕐 {stop.appointment.start_time?.slice(0, 5)}</div>
-                              <div>📍 {stop.appointment.address}, {stop.appointment.city}</div>
-                              {stop.appointment.clients?.phone && <div>📞 {stop.appointment.clients.phone}</div>}
+                              <div>{stop.appointment.pets?.name} · {stop.appointment.services?.name}</div>
+                              <div>{stop.appointment.start_time?.slice(0, 5)}</div>
+                              <div>{stop.appointment.address}, {stop.appointment.city}</div>
+                              {stop.appointment.clients?.phone && <div>{stop.appointment.clients.phone}</div>}
                             </div>
                             {stop.appointment.price && (
                               <div className="mt-1 text-sm font-bold" style={{ color: cfg.color }}>${stop.appointment.price}</div>

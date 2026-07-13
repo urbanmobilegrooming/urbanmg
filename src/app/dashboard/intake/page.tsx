@@ -3,6 +3,8 @@ import { IntakeManager } from "@/components/intake/IntakeManager";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = { title: "Intake & Leads" };
+
 export default async function IntakeDashboardPage() {
   const [submissions, leads] = await Promise.all([listIntakeSubmissions(), listLeads()]);
 

@@ -44,10 +44,10 @@ const ServiceMap = dynamic(() => import("./ServiceMap"), {
 
 /* ── Data (visual only — strings translated come from dict) ── */
 const SERVICE_VISUALS = [
-  { icon: Bath, emoji: "🛁", img: "/booking/urban-bano-1.jpg", featured: false },
-  { icon: Scissors, emoji: "✂️", img: "/booking/urban-bano-2.jpg", featured: true },
-  { icon: Stethoscope, emoji: "🦷", img: "/booking/dental-prophylaxis.webp", featured: false },
-  { icon: Sparkles, emoji: "✨", img: "/booking/service-grooming.jpg", featured: false },
+  { icon: Bath, img: "/booking/urban-bano-1.jpg", featured: false },
+  { icon: Scissors, img: "/booking/urban-bano-2.jpg", featured: true },
+  { icon: Stethoscope, img: "/booking/dental-prophylaxis.webp", featured: false },
+  { icon: Sparkles, img: "/booking/service-grooming.jpg", featured: false },
 ];
 
 const STEP_TONES: Array<"cream" | "ink" | "yellow"> = ["cream", "ink", "cream", "yellow"];
@@ -487,7 +487,7 @@ export function AnimatedLanding({ dict }: { dict: Dict }) {
                     <span className={`absolute -top-5 right-5 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg shadow-lg ${
                       featured ? "bg-brand-ink text-brand-yellow" : "bg-brand-yellow text-brand-ink"
                     }`}>
-                      {visual.emoji}
+                      <visual.icon className="h-5 w-5" />
                     </span>
                     {featured && "badge" in item && item.badge && (
                       <p className="text-[10px] font-black uppercase tracking-[0.25em]">{item.badge}</p>

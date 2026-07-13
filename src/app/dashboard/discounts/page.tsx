@@ -1,6 +1,8 @@
 import { DiscountsManager } from "@/components/discounts/DiscountsManager";
 import { listDiscountCodes } from "@/server/discounts";
 
+export const metadata = { title: "Discounts" };
+
 export default async function DiscountsPage() {
   const codes = await listDiscountCodes();
   return (

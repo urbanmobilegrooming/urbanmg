@@ -1,6 +1,8 @@
 import { ReviewsClient } from "@/components/reviews/ReviewsClient";
 import { getReviewSettings, listReviewRequests } from "@/server/reviews";
 
+export const metadata = { title: "Reviews" };
+
 export default async function ReviewsPage() {
   const [settings, requests] = await Promise.all([getReviewSettings(), listReviewRequests()]);
   return (

@@ -8,6 +8,8 @@ import {
 } from "@/server/billing";
 import { listAppointmentServicesForIds } from "@/server/appointments";
 
+export const metadata = { title: "Billing" };
+
 export default async function BillingPage() {
   const invoices = await listInvoices(50);
   const invoiceIds = invoices.map((i) => i.id);

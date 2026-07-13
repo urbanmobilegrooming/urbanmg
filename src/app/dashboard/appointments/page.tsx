@@ -4,6 +4,8 @@ import { listClients } from "@/server/clients";
 import { listActiveServices } from "@/server/services";
 import { listStaff } from "@/server/staff";
 
+export const metadata = { title: "Appointments" };
+
 export default async function AppointmentsPage() {
   const [appointments, clients, services, staff] = await Promise.all([
     listAppointments(100),
