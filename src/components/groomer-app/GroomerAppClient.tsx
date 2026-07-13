@@ -36,6 +36,8 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
   const [saving, setSaving] = useState(false);
   const [tracking, setTracking] = useState<{ aptId: string; sessionId: string; token: string } | null>(null);
   const lastPingRef = useRef(0);
+  const endedTrackingRef = useRef<Set<string>>(new Set());
+  const geoErrorRef = useRef(false);
 
   const currentApt = useMemo(() => {
     if (currentId) return todayApts.find((a) => a.id === currentId) ?? null;
@@ -73,9 +75,14 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
     }
   }
 
-  // reanuda la sesión si la cita ya está on_the_way (p.ej. tras recargar)
+  // reanuda la sesión si la cita ya está on_the_way (p.ej. tras recargar);
+  // salta citas cuyo tracking el groomer acaba de cerrar (estado stale hasta el refresh)
   useEffect(() => {
-    if (currentApt?.status === "on_the_way" && tracking?.aptId !== currentApt.id) {
+    if (
+      currentApt?.status === "on_the_way" &&
+      tracking?.aptId !== currentApt.id &&
+      !endedTrackingRef.current.has(currentApt.id)
+    ) {
       startTracking(currentApt.id)
         .then((s) => setTracking({ aptId: currentApt.id, sessionId: s.sessionId, token: s.token }))
         .catch(() => {});
@@ -92,7 +99,12 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
         lastPingRef.current = now;
         updateTrackingPosition(tracking.sessionId, pos.coords.latitude, pos.coords.longitude).catch(() => {});
       },
-      () => toast.error("Enable location to share live tracking"),
+      () => {
+        if (!geoErrorRef.current) {
+          geoErrorRef.current = true;
+          toast.error("Enable location to share live tracking");
+        }
+      },
       { enableHighAccuracy: true, maximumAge: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
@@ -100,6 +112,7 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
 
   async function goOnTheWay(id: string) {
     setSaving(true);
+    endedTrackingRef.current.delete(id);
     try {
       const s = await startTracking(id);
       setTracking({ aptId: id, sessionId: s.sessionId, token: s.token });
@@ -114,6 +127,7 @@ export function GroomerAppClient({ appointments, userName }: { appointments: Gro
 
   async function markArrived(id: string) {
     setSaving(true);
+    endedTrackingRef.current.add(id);
     try {
       await endTracking(id, "arrived");
       setTracking(null);

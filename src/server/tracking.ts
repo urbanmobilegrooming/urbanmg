@@ -26,8 +26,27 @@ function etaMinutes(fromLat: number, fromLng: number, toLat: number, toLng: numb
 }
 
 async function geocodeAddress(address: string, city: string | null): Promise<{ lat: number; lng: number } | null> {
+  const full = `${address}, ${city ?? 'Miami'}, FL, USA`;
+  const googleKey = process.env.GOOGLE_MAPS_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+  if (googleKey) {
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(full)}&key=${googleKey}`,
+        { signal: AbortSignal.timeout(5000) },
+      );
+      if (res.ok) {
+        const data = (await res.json()) as { results?: { geometry: { location: { lat: number; lng: number } } }[] };
+        const loc = data.results?.[0]?.geometry?.location;
+        if (loc) return { lat: loc.lat, lng: loc.lng };
+      }
+    } catch {
+      /* cae a Nominatim */
+    }
+  }
+
   try {
-    const q = encodeURIComponent(`${address}, ${city ?? 'Miami'}, FL, USA`);
+    const q = encodeURIComponent(full);
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,
       { headers: { 'User-Agent': 'UrbanMG/1.0 (urbanmobilegrooming.com)' }, signal: AbortSignal.timeout(5000) },
@@ -51,6 +70,10 @@ export async function startTracking(appointmentId: string) {
     .where(and(eq(appointments.id, appointmentId), eq(appointments.businessId, businessId)))
     .limit(1);
   if (!apt) throw new Error('Appointment not found');
+  // nunca retroceder una cita que ya llegó / está en servicio / terminó
+  if (['arrived', 'in_progress', 'grooming', 'completed', 'cancelled', 'no_show'].includes(apt.status)) {
+    throw new Error('Appointment already past the on-the-way stage');
+  }
 
   const [existing] = await db
     .select()

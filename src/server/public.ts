@@ -1,8 +1,9 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+import { rateLimit } from '@/lib/rate-limit';
 import {
   appointments,
   clients,
@@ -66,8 +67,18 @@ export async function getCheckinAppointment(id: string) {
 }
 
 export async function checkInAppointment(id: string) {
+  await rateLimit('public-checkin', 10, 60_000);
   if (!isUuid(id)) throw new Error('Invalid appointment ID');
   const now = new Date();
+  const [current] = await db
+    .select({ status: appointments.status })
+    .from(appointments)
+    .where(eq(appointments.id, id))
+    .limit(1);
+  if (!current) throw new Error('Appointment not found');
+  if (['completed', 'cancelled', 'no_show'].includes(current.status)) {
+    throw new Error('This appointment is already closed');
+  }
   const [row] = await db
     .update(appointments)
     .set({ status: 'in_progress', checkinAt: now, updatedAt: now })
@@ -112,6 +123,7 @@ export async function getAgreement(id: string) {
 }
 
 export async function signAgreement(id: string, signatureDataUrl: string) {
+  await rateLimit('public-sign', 10, 60_000);
   if (!isUuid(id)) throw new Error('Invalid agreement ID');
   if (typeof signatureDataUrl !== 'string' || !signatureDataUrl.startsWith('data:image/')) {
     throw new Error('Invalid signature');
@@ -123,9 +135,9 @@ export async function signAgreement(id: string, signatureDataUrl: string) {
   const [row] = await db
     .update(clientAgreements)
     .set({ status: 'signed', signedAt: now, signatureUrl: signatureDataUrl })
-    .where(eq(clientAgreements.id, id))
+    .where(and(eq(clientAgreements.id, id), ne(clientAgreements.status, 'signed')))
     .returning();
-  if (!row) throw new Error('Agreement not found');
+  if (!row) throw new Error('Agreement not found or already signed');
   revalidatePath(`/sign/${id}`);
   return { signed_at: now.toISOString() };
 }
@@ -177,7 +189,14 @@ function clampRating(n: unknown): number {
 }
 
 export async function submitSurvey(appointmentId: string, input: SurveyInput) {
+  await rateLimit('public-survey', 5, 60_000);
   if (!isUuid(appointmentId)) throw new Error('Invalid appointment ID');
+  const [existing] = await db
+    .select({ id: satisfactionSurveys.id })
+    .from(satisfactionSurveys)
+    .where(eq(satisfactionSurveys.appointmentId, appointmentId))
+    .limit(1);
+  if (existing) throw new Error('A review was already submitted for this appointment');
   if (!['yes', 'no', 'maybe'].includes(input.would_recommend)) {
     throw new Error('Invalid recommendation');
   }

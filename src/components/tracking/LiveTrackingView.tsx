@@ -130,25 +130,32 @@ function LiveMap({ data }: { data: PublicTracking }) {
 export function LiveTrackingView({ token, initial }: { token: string; initial: PublicTracking }) {
   const [data, setData] = useState<PublicTracking>(initial);
   const [lastUpdatedMs, setLastUpdatedMs] = useState(Date.now());
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    pollRef.current = setInterval(async () => {
+    let stopped = false;
+
+    async function tick() {
       try {
         const fresh = await getTrackingByToken(token);
-        if (fresh) {
+        if (fresh && !stopped) {
           setData(fresh);
           setLastUpdatedMs(Date.now());
-          if (fresh.status === 'ended' && ['completed', 'cancelled'].includes(fresh.appointment_status) && pollRef.current) {
-            clearInterval(pollRef.current);
-          }
+          if (['completed', 'cancelled', 'no_show'].includes(fresh.appointment_status)) return; // terminal: deja de sondear
+          // GPS activo → 10s; tracking cerrado (llegó / en servicio) → 60s
+          pollRef.current = setTimeout(tick, fresh.status === 'active' ? 10000 : 60000);
+          return;
         }
       } catch {
         /* ignore */
       }
-    }, 10000);
+      if (!stopped) pollRef.current = setTimeout(tick, 15000);
+    }
+
+    pollRef.current = setTimeout(tick, 10000);
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      stopped = true;
+      if (pollRef.current) clearTimeout(pollRef.current);
     };
   }, [token]);
 

@@ -83,7 +83,7 @@ export async function listRebookingOpportunities(): Promise<RebookingOpportunity
         for (let i = 1; i < visits.length; i++) {
           const gapDays =
             (new Date(visits[i].date).getTime() - new Date(visits[i - 1].date).getTime()) / 86400000;
-          if (gapDays > 7 && gapDays < 180) gaps.push(gapDays);
+          if (gapDays >= 3 && gapDays <= 365) gaps.push(gapDays);
         }
         if (gaps.length) {
           freq = Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length / 7);

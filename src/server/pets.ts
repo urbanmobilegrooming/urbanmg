@@ -326,11 +326,9 @@ export async function saveVetInfo(petId: string, input: VetInfoInput) {
     notes: input.notes?.trim() || null,
     updatedAt: new Date(),
   };
-  const [existing] = await db.select().from(petVetInfo).where(eq(petVetInfo.petId, petId)).limit(1);
-  if (existing) {
-    await db.update(petVetInfo).set(values).where(eq(petVetInfo.petId, petId));
-  } else {
-    await db.insert(petVetInfo).values({ petId, ...values });
-  }
+  await db
+    .insert(petVetInfo)
+    .values({ petId, ...values })
+    .onConflictDoUpdate({ target: petVetInfo.petId, set: values });
   revalidatePath(`/dashboard/pets/${petId}`);
 }

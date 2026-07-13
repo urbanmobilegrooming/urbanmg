@@ -2,7 +2,9 @@
 
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { appointments, clients, leads, notifications, pets, services } from '@/lib/db/schema';
+import { appointments, clients, leads, notifications, pets, servicePricing, services, staff } from '@/lib/db/schema';
+import { and } from 'drizzle-orm';
+import { clamp, rateLimit } from '@/lib/rate-limit';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,10 +31,13 @@ export async function createPublicBooking(input: {
   notes?: string | null;
   price?: number;
 }) {
+  await rateLimit('public-booking', 5, 60_000);
+
   if (!input.first_name?.trim() || !input.last_name?.trim()) {
     throw new Error('Name required');
   }
   if (!input.pet_name?.trim()) throw new Error('Pet name required');
+  if (input.weight != null && (input.weight < 0 || input.weight > 400)) throw new Error('Invalid weight');
 
   const phoneDigits = (input.phone ?? '').replace(/\D/g, '');
   if (phoneDigits.length < 10) throw new Error('Invalid phone number');
@@ -58,6 +63,33 @@ export async function createPublicBooking(input: {
     .limit(1);
   if (!svc || !svc.businessId) throw new Error('Service not found');
   const businessId = svc.businessId;
+
+  // el precio nunca se confía del cliente: debe coincidir con el precio base
+  // o con alguno de los precios por tamaño del servicio
+  const pricingRows = await db
+    .select({ price: servicePricing.price })
+    .from(servicePricing)
+    .where(eq(servicePricing.serviceId, svc.id));
+  const allowedPrices = new Set(
+    [svc.basePrice, ...pricingRows.map((r) => r.price)]
+      .filter((p): p is string => p != null)
+      .map((p) => Number(p)),
+  );
+  const price =
+    input.price != null && allowedPrices.has(Number(input.price))
+      ? Number(input.price)
+      : svc.basePrice != null
+        ? Number(svc.basePrice)
+        : null;
+
+  if (input.staff_id) {
+    const [st] = await db
+      .select({ id: staff.id })
+      .from(staff)
+      .where(and(eq(staff.id, input.staff_id), eq(staff.businessId, businessId)))
+      .limit(1);
+    if (!st) throw new Error('Invalid staff');
+  }
 
   const [client] = await db
     .insert(clients)

@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { businesses, clients, intakeSubmissions, leads, notifications, pets } from '@/lib/db/schema';
 import { requireBusiness } from '@/lib/auth-server';
+import { clamp, rateLimit } from '@/lib/rate-limit';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -16,9 +17,10 @@ export type IntakePetInput = {
   notes?: string;
 };
 
-async function defaultBusinessId(): Promise<string | null> {
+async function defaultBusinessId(): Promise<string> {
   const [b] = await db.select({ id: businesses.id }).from(businesses).orderBy(businesses.createdAt).limit(1);
-  return b?.id ?? null;
+  if (!b) throw new Error('Business not configured');
+  return b.id;
 }
 
 // Public — new client intake form (no auth)
@@ -35,11 +37,22 @@ export async function submitIntake(input: {
   pets: IntakePetInput[];
   notes?: string | null;
 }) {
+  await rateLimit('public-intake', 5, 60_000);
+
   if (!input.first_name?.trim() || !input.last_name?.trim()) throw new Error('Name required');
   const phoneDigits = (input.phone ?? '').replace(/\D/g, '');
-  if (phoneDigits.length < 10) throw new Error('Invalid phone number');
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) throw new Error('Invalid phone number');
   if (input.email && !EMAIL_RE.test(input.email)) throw new Error('Invalid email');
-  const petList = (input.pets ?? []).filter((p) => p.name?.trim()).slice(0, 6);
+  const petList = (input.pets ?? [])
+    .filter((p) => p.name?.trim())
+    .slice(0, 6)
+    .map((p) => ({
+      name: clamp(p.name, 80)!,
+      species: clamp(p.species, 30) ?? 'dog',
+      breed: clamp(p.breed, 80) ?? undefined,
+      weight_lbs: p.weight_lbs != null && p.weight_lbs >= 0 && p.weight_lbs <= 400 ? p.weight_lbs : null,
+      notes: clamp(p.notes, 500) ?? undefined,
+    }));
   if (!petList.length) throw new Error('At least one pet is required');
 
   const businessId = await defaultBusinessId();
@@ -47,17 +60,17 @@ export async function submitIntake(input: {
   const [submission] = await db
     .insert(intakeSubmissions)
     .values({
-      firstName: input.first_name.trim(),
-      lastName: input.last_name.trim(),
-      phone: input.phone,
-      email: input.email?.trim() || null,
-      address: input.address?.trim() || null,
-      city: input.city?.trim() || null,
-      zip: input.zip?.trim() || null,
-      preferredContact: input.preferred_contact ?? null,
-      referralSource: input.referral_source ?? null,
+      firstName: clamp(input.first_name, 80)!,
+      lastName: clamp(input.last_name, 80)!,
+      phone: clamp(input.phone, 25),
+      email: clamp(input.email, 120),
+      address: clamp(input.address, 200),
+      city: clamp(input.city, 80),
+      zip: clamp(input.zip, 12),
+      preferredContact: clamp(input.preferred_contact, 20),
+      referralSource: clamp(input.referral_source, 40),
       pets: petList,
-      notes: input.notes?.trim() || null,
+      notes: clamp(input.notes, 2000),
       businessId,
     })
     .returning();
