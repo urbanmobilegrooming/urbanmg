@@ -1,0 +1,29 @@
+{
+    "profile": {
+        "id": null,
+        "businessId": 104490,
+        "businessName": "URBAN MOBILE GROOMING",
+        "phoneNumber": "7869066700",
+        "website": "www.urbanmobilegrooming.com",
+        "address": "",
+        "businessEmail": null,
+        "avatarPath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/1647315625d0a86462c09b4bdea93211196a660ad7.jpg?name=0a296da5-d627-4eaa-a749-3962fc7e2de5.jpg",
+        "facebook": "https://www.facebook.com/urbanmobilegrooming/",
+        "instagram": "https://instagram.com/urbanmobilegrooming?utm_medium=copy_link",
+        "google": "https://maps.app.goo.gl/Lpp6hqFUXWxg3Rwk7?g_st=ic",
+        "yelp": "",
+        "other": null,
+        "language": null,
+        "buttonColor": "#ffbb00",
+        "createTime": null,
+        "updateTime": null,
+        "companyId": null,
+        "tiktok": "",
+        "description": "We are a family business dedicated to pet care, with professional pet grooming and quality products.",
+        "businessHoursJson": null,
+        "addressDetails": null
+    },
+    "company": {
+        "enterpriseId": 0
+    }
+}

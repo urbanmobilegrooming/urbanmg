@@ -1,0 +1,32 @@
+{
+  "name": "Urban Mobile Grooming - Miami & Broward",
+  "short_name": "Urban Mobile",
+  "description": "Door-to-door dog and cat grooming spa serving Miami-Dade and Broward, FL.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFBEF",
+  "theme_color": "#FAB901",
+  "orientation": "portrait",
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["lifestyle", "shopping", "business"],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "url": "/book",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Staff Login",
+      "url": "/login",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

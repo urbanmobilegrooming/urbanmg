@@ -1,0 +1,206 @@
+[
+    {
+        "categoryId": 211617,
+        "categoryName": "Bio Groom Shampoo Collection \ud83e\udee7",
+        "categoryType": 2,
+        "sort": 2,
+        "serviceList": [
+            {
+                "serviceId": 1297931,
+                "serviceName": "HYPOALLERGENIC SHAMPOO ",
+                "description": "A gentle, hypoallergenic shampoo, perfect for sensitive skin. Cleanses delicately while soothing irritation and allergies.\n\nUn shampoo suave e hipoalerg\u00e9nico, ideal para pieles sensibles. Limpia delicadamente mientras calma la irritaci\u00f3n y las alergias.",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 1,
+                "sort": 7,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1297935,
+                "serviceName": "Natural Oatmeal Colloidal Shampoo",
+                "description": "Infused with colloidal oatmeal, this shampoo provides gentle and nourishing cleansing, perfect for sensitive and dry-prone skin.\n\n Infundido con avena coloidal, este shampoo proporciona una limpieza suave y nutritiva, perfecta para pieles sensibles y prop",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 1,
+                "sort": 5,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1297937,
+                "serviceName": "Herbal Groom Shampoo",
+                "description": "Enjoy a refreshing and relaxing bathing experience with this herbal shampoo, leaving a fresh and long-lasting scent on the coat.\n\nDisfruta de una experiencia de ba\u00f1o relajante y refrescante con este shampoo herbal, que deja un aroma fresco y duradero en e",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 6.0,
+                "showBasePrice": 1,
+                "sort": 3,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1436569,
+                "serviceName": "Deep Cleansing Shampoo",
+                "description": "With its deep cleansing formula, this shampoo is perfect for removing stubborn dirt and revitalizing your pet's coat.\nCon su f\u00f3rmula de limpieza profunda, este shampoo es perfecto para eliminar la suciedad m\u00e1s persistente y revitalizar el pelaje.",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 6.0,
+                "showBasePrice": 1,
+                "sort": 4,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1436571,
+                "serviceName": "Anti-Shed Deshedding Shampoo",
+                "description": "Reduce shedding and promote a stronger, less tangled coat with this shampoo specifically designed to minimize shedding.\n\nReduce la ca\u00edda del pelo y promueve un pelaje m\u00e1s fuerte, con este shampoo dise\u00f1ado espec\u00edficamente para minimizar la muda del pelaje.",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 15,
+                "price": 10.0,
+                "showBasePrice": 1,
+                "sort": 2,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1436573,
+                "serviceName": "Wiry Coat Texturizing Shampoo",
+                "description": "Give your pet's coat texture and body with this shampoo designed to enhance the beauty and definition of thicker, wiry hair.\n\nDale a tu mascota un pelaje con textura y cuerpo con este shampoo dise\u00f1ado para realzar la definici\u00f3n de los pelos m\u00e1s gruesos.",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 6.0,
+                "showBasePrice": 1,
+                "sort": 1,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1436575,
+                "serviceName": "Flea and Tick Shampoo",
+                "description": "",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 15,
+                "price": 15.0,
+                "showBasePrice": 1,
+                "sort": 0,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1436580,
+                "serviceName": " Indulge Argan Oil Shampoo",
+                "description": "Infused with the nourishing properties of Argan Oil, this shampoo gently cleanses, hydrates, and revitalizes your hair, leaving it soft, shiny, and healthy. Perfect for all hair types.\n",
+                "serviceType": 2,
+                "colorCode": "#bf81fe",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 1,
+                "sort": 6,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1568150,
+                "serviceName": "Bio-Med Shampoo: Soothing Relief for Sensitive Skin",
+                "description": "Give your pet the special care they deserve with our Bio-Med Shampoo \ud83d\udec1\ud83d\udc36. Its coal tar formula helps relieve itching, flaking, and discomfort caused by seborrheic dermatitis. Perfect for sensitive and irritation-prone skin. \ud83c\udf3f\u2728",
+                "serviceType": 2,
+                "colorCode": "#000000",
+                "duration": 10,
+                "price": 20.0,
+                "showBasePrice": 1,
+                "sort": 1568150,
+                "bundleServiceIds": []
+            }
+        ]
+    },
+    {
+        "categoryId": 211615,
+        "categoryName": "Extra Love & Care \ud83d\udc96\ud83d\udc3e",
+        "categoryType": 2,
+        "sort": 1,
+        "serviceList": [
+            {
+                "serviceId": 1402629,
+                "serviceName": "AGRESSIVE PET",
+                "description": "This additional service is for pets that require special handling due to aggressive behavior. Our team uses safe and careful techniques to ensure the calmest experience possible. Additional cost applies for the extra time and attention required.",
+                "serviceType": 2,
+                "colorCode": "#000000",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 3,
+                "sort": 1402629,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1486237,
+                "serviceName": "SENIOR PET",
+                "description": "Older pets require gentle and age-appropriate care. We offer a specialized service that includes soft handling, adjustments for their comfort, and constant monitoring during grooming to ensure their well-being.",
+                "serviceType": 2,
+                "colorCode": "#000000",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 3,
+                "sort": 1486237,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1486238,
+                "serviceName": "SPECIAL CARE",
+                "description": "For pets that need extra attention due to health conditions, anxiety, or other special needs. We offer gentle handling, stress-free techniques, and tailored grooming to ensure their comfort and well-being. Our priority is providing the best care for your pet\u2019s unique needs.",
+                "serviceType": 2,
+                "colorCode": "#000000",
+                "duration": 10,
+                "price": 10.0,
+                "showBasePrice": 3,
+                "sort": 1486238,
+                "bundleServiceIds": []
+            }
+        ]
+    },
+    {
+        "categoryId": 267698,
+        "categoryName": "Flea & Tick Bath \ud83d\udc1c\ud83d\udeab",
+        "categoryType": 2,
+        "sort": 0,
+        "serviceList": [
+            {
+                "serviceId": 1486249,
+                "serviceName": "Flea & Tick Bath - Small",
+                "description": "Perfect for small pets, our Flea & Tick Bath uses Bio Groom shampoo, a gentle and effective formula that eliminates fleas and ticks while soothing their skin. Keep your little companion comfortable and pest-free!",
+                "serviceType": 2,
+                "colorCode": "#93ddff",
+                "duration": 10,
+                "price": 15.0,
+                "showBasePrice": 1,
+                "sort": 2,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1486250,
+                "serviceName": "Flea & Tick Bath - Medium",
+                "description": "Designed for medium-sized pets, our Flea & Tick Bath features Bio Groom shampoo, which effectively removes fleas and ticks while being kind to their skin. Enjoy a pest-free grooming experience for your furry friend!",
+                "serviceType": 2,
+                "colorCode": "#93ddff",
+                "duration": 10,
+                "price": 20.0,
+                "showBasePrice": 1,
+                "sort": 1,
+                "bundleServiceIds": []
+            },
+            {
+                "serviceId": 1486251,
+                "serviceName": "Flea & Tick Bath - Large",
+                "description": "Ideal for large pets, our Flea & Tick Bath utilizes Bio Groom shampoo to target fleas and ticks effectively. This gentle formula not only eliminates pests but also soothes and protects your pet's skin, ensuring a comfortable bath time!",
+                "serviceType": 2,
+                "colorCode": "#93ddff",
+                "duration": 10,
+                "price": 25.0,
+                "showBasePrice": 1,
+                "sort": 0,
+                "bundleServiceIds": []
+            }
+        ]
+    }
+]

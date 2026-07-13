@@ -1,0 +1,93 @@
+{
+    "themeColor": "#ffbb00",
+    "gaMeasurementId": null,
+    "pageComponents": [
+        {
+            "component": "aboutUs",
+            "text": "We are a family business dedicated to pet care, with professional pet grooming and quality products."
+        },
+        {
+            "component": "contact",
+            "phone": "7869066700"
+        },
+        {
+            "component": "welcomePageMessage",
+            "text": "Welcome to Urban Mobile Grooming! \ud83d\udc3e We are excited to care for your furry friend. \ud83d\udc36\ud83d\udc31 Schedule your appointment easily with us. \u2764\ufe0f\n\u00a1Bienvenido a Urban Mobile Grooming! \ud83d\udc3e Estamos emocionados de cuidar a tu amigo peludo. \ud83d\udc36\ud83d\udc31 Programa tu cita f\u00e1cilmente con nosotros. \u2764\ufe0f"
+        },
+        {
+            "component": "businessHours",
+            "workingHours": {
+                "monday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "tuesday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "wednesday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "thursday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "friday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "saturday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ],
+                "sunday": [
+                    {
+                        "startTime": 480,
+                        "endTime": 1140
+                    }
+                ]
+            },
+            "closedDateList": []
+        },
+        {
+            "component": "gallery",
+            "galleryList": [
+                {
+                    "imagePath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/16952995166014d143002c447f89689f381ec21c19.jpg?name=IMG-20230921-WA0003.jpg",
+                    "sort": 5
+                },
+                {
+                    "imagePath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/16952997544a59a0ffa51e49e7bc96533051554555.jpg?name=IMG-20230921-WA0002.jpg",
+                    "sort": 4
+                },
+                {
+                    "imagePath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/1724788785a1fce2f525394d82a0f4ac92e979ab05.png?name=Chanel.zip%20-%201.png&fileSize=1617445&width=1080&height=1080",
+                    "sort": 3
+                },
+                {
+                    "imagePath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/1695298674c54a9bc932c1453abfcf9a92dbe41b81.jpg?name=URBAN-BAN%CC%83O.jpg",
+                    "sort": 2
+                },
+                {
+                    "imagePath": "https://moegonew.s3-us-west-2.amazonaws.com/Public/Uploads/1695298688473aab9f896b4b56a8c6168aab28f707.jpg?name=URBAN-BAN%CC%83O2.jpg",
+                    "sort": 1
+                }
+            ]
+        }
+    ],
+    "thankYouPageUrl": null,
+    "isPreview": false
+}
