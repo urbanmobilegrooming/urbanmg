@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie = getSessionCookie(request, { cookiePrefix: 'urbanmg' });
 
   if (
     pathname.startsWith('/dashboard') ||
