@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Pencil } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,8 @@ import {
   cancelAppointment,
   createAppointment,
   createAppointmentServices,
+  createRecurringAppointments,
+  updateAppointment,
   updateAppointmentStatus,
 } from "@/server/appointments";
 
@@ -92,6 +95,11 @@ export function AppointmentsList({
 }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [editApt, setEditApt] = useState<Appointment | null>(null);
+  const [editForm, setEditForm] = useState({ date: "", start_time: "", staff_id: "", van: "", price: "", notes: "" });
+  const [editSaving, setEditSaving] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState(0);
+  const [repeatUntil, setRepeatUntil] = useState("");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedPets, setSelectedPets] = useState<string[]>([]);
@@ -184,7 +192,7 @@ export function AppointmentsList({
     const firstService = petServices[firstPet];
 
     try {
-      const apt = await createAppointment({
+      const baseInput = {
         client_id: form.client_id,
         pet_id: firstPet,
         service_id: firstService,
@@ -198,7 +206,16 @@ export function AppointmentsList({
         zip: form.zip || null,
         price: calculateTotal(),
         notes: form.notes || null,
-      });
+      };
+      let aptId: string;
+      if (repeatWeeks > 0 && repeatUntil) {
+        const res = await createRecurringAppointments(baseInput, { frequency_weeks: repeatWeeks, end_date: repeatUntil });
+        aptId = res.firstId;
+        if (res.skipped.length) toast.info(`${res.skipped.length} repeat dates skipped due to conflicts`);
+      } else {
+        const apt = await createAppointment(baseInput);
+        aptId = apt.id;
+      }
 
       const svcRows = selectedPets.map((petId, i) => {
         const svcId = petServices[petId];
@@ -207,7 +224,7 @@ export function AppointmentsList({
         const sz = getSizeCategory(p?.weight_lbs ?? null);
         const pr = s?.service_pricing.find((x) => x.size_category === sz);
         return {
-          appointment_id: apt.id,
+          appointment_id: aptId,
           pet_id: petId,
           service_id: svcId,
           staff_id: form.staff_id || null,
@@ -218,9 +235,11 @@ export function AppointmentsList({
       });
       await createAppointmentServices(svcRows);
 
-      toast.success("Appointment created");
+      toast.success(repeatWeeks > 0 ? "Recurring appointments created" : "Appointment created");
       setOpen(false);
       resetForm();
+      setRepeatWeeks(0);
+      setRepeatUntil("");
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
@@ -235,6 +254,40 @@ export function AppointmentsList({
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed");
+    }
+  }
+
+  function openEdit(apt: Appointment) {
+    setEditApt(apt);
+    setEditForm({
+      date: apt.date,
+      start_time: apt.start_time?.slice(0, 5) ?? "",
+      staff_id: apt.staff?.id ?? "",
+      van: apt.van ?? "",
+      price: apt.price != null ? String(apt.price) : "",
+      notes: apt.notes ?? "",
+    });
+  }
+
+  async function handleEditSave() {
+    if (!editApt) return;
+    setEditSaving(true);
+    try {
+      await updateAppointment(editApt.id, {
+        date: editForm.date,
+        start_time: editForm.start_time,
+        staff_id: editForm.staff_id || null,
+        van: editForm.van || null,
+        price: editForm.price ? Number(editForm.price) : null,
+        notes: editForm.notes || null,
+      });
+      toast.success("Appointment updated");
+      setEditApt(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update appointment");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -371,6 +424,20 @@ export function AppointmentsList({
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><Label>Date *</Label><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
+                  <div>
+                    <Label>Repeat</Label>
+                    <select value={repeatWeeks} onChange={(e) => setRepeatWeeks(Number(e.target.value))} className="w-full rounded-md border px-3 py-2 text-sm">
+                      <option value={0}>Does not repeat</option>
+                      <option value={1}>Every week</option>
+                      <option value={2}>Every 2 weeks</option>
+                      <option value={4}>Every 4 weeks</option>
+                      <option value={6}>Every 6 weeks</option>
+                      <option value={8}>Every 8 weeks</option>
+                    </select>
+                  </div>
+                  {repeatWeeks > 0 && (
+                    <div><Label>Repeat until *</Label><Input type="date" value={repeatUntil} onChange={(e) => setRepeatUntil(e.target.value)} /></div>
+                  )}
                   <div><Label>Time *</Label><Input type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -464,9 +531,14 @@ export function AppointmentsList({
                             </Button>
                           )}
                           {apt.status !== "cancelled" && apt.status !== "completed" && (
-                            <Button size="sm" variant="outline" onClick={() => handleCancel(apt.id)} className="h-7 text-[10px] text-red-500 hover:text-red-600">
-                              <XCircle size={12} />
-                            </Button>
+                            <>
+                              <Button size="sm" variant="outline" onClick={() => openEdit(apt)} className="h-7 text-[10px] text-gray-500">
+                                <Pencil size={12} />
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleCancel(apt.id)} className="h-7 text-[10px] text-red-500 hover:text-red-600">
+                                <XCircle size={12} />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -478,6 +550,54 @@ export function AppointmentsList({
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Editar / reprogramar */}
+      <Dialog open={!!editApt} onOpenChange={(v) => { if (!v) setEditApt(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Reschedule / Edit</DialogTitle></DialogHeader>
+          {editApt && (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-500">
+                {editApt.clients?.first_name} {editApt.clients?.last_name} · {editApt.pets?.name} · {editApt.services?.name}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Date</label>
+                  <Input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Time</label>
+                  <Input type="time" value={editForm.start_time} onChange={(e) => setEditForm({ ...editForm, start_time: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Groomer</label>
+                  <select value={editForm.staff_id} onChange={(e) => setEditForm({ ...editForm, staff_id: e.target.value })} className="w-full rounded-md border px-3 py-2 text-sm">
+                    <option value="">Unassigned</option>
+                    {staff.map((s) => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Price ($)</label>
+                  <Input type="number" min={0} value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Van</label>
+                <Input value={editForm.van} onChange={(e) => setEditForm({ ...editForm, van: e.target.value })} placeholder="Van name" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Notes</label>
+                <Textarea rows={2} value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} />
+              </div>
+              <Button disabled={editSaving} onClick={handleEditSave} className="w-full bg-[#f2c037] font-bold text-[#1a0a3e] hover:bg-[#e5a818]">
+                {editSaving ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -97,6 +97,13 @@ export async function createPublicBooking(input: {
     if (!st) return { ok: false as const, error: 'Invalid staff' };
   }
 
+  // el horario elegido debe ser un slot realmente disponible
+  const slots = await getAvailableSlots(input.date, input.service_id, input.staff_id ?? null);
+  const chosen = slots.find((sl) => sl.time === input.time.slice(0, 5));
+  if (!chosen || !chosen.available) {
+    return { ok: false as const, error: 'That time is no longer available — please pick another slot' };
+  }
+
   // reutiliza el cliente si ya existe con ese teléfono (evita duplicados)
   let [client] = await db
     .select()
@@ -189,4 +196,101 @@ export async function createPublicBooking(input: {
   });
 
   return { ok: true as const };
+}
+
+// ─── Disponibilidad pública ───────────────────────────────────────────────────
+
+const OPEN_MIN = 8 * 60; // 8:00
+const CLOSE_MIN = 18 * 60; // 18:00
+const SLOT_STEP = 30;
+
+function toMin(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function toTime(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Slots disponibles para una fecha (público, para /book).
+ * Capacidad = groomers activos; si se elige groomer, respeta su horario,
+ * bloqueos y citas. Sin groomer, un slot está lleno cuando todos están ocupados.
+ */
+export async function getAvailableSlots(date: string, serviceId: string, staffId?: string | null) {
+  if (!DATE_RE.test(date) || !UUID_RE.test(serviceId)) return [];
+  if (staffId && !UUID_RE.test(staffId)) return [];
+
+  const [svc] = await db.select().from(services).where(eq(services.id, serviceId)).limit(1);
+  if (!svc || !svc.businessId) return [];
+  const businessId = svc.businessId;
+  const duration = svc.durationMinutes ?? 60;
+
+  const { staffSchedules, staffBlockTimes } = await import('@/lib/db/schema');
+  const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+
+  const groomers = await db
+    .select({ id: staff.id })
+    .from(staff)
+    .where(and(eq(staff.businessId, businessId), eq(staff.isActive, true)));
+  const groomerIds = staffId ? [staffId] : groomers.map((g) => g.id);
+  if (!groomerIds.length) groomerIds.push('__none__');
+
+  const dayAppts = await db
+    .select({ staffId: appointments.staffId, startTime: appointments.startTime, endTime: appointments.endTime, status: appointments.status })
+    .from(appointments)
+    .where(and(eq(appointments.businessId, businessId), eq(appointments.date, date)));
+  const active = dayAppts.filter((a) => !['cancelled', 'no_show'].includes(a.status));
+
+  const schedules = await db.select().from(staffSchedules).where(eq(staffSchedules.dayOfWeek, dayOfWeek));
+  const blocks = await db.select().from(staffBlockTimes).where(eq(staffBlockTimes.date, date));
+
+  const slots: { time: string; available: boolean }[] = [];
+  const today = new Date().toISOString().split('T')[0];
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+
+  for (let start = OPEN_MIN; start + duration <= CLOSE_MIN; start += SLOT_STEP) {
+    const end = start + duration;
+    if (date === today && start <= nowMin + 60) {
+      slots.push({ time: toTime(start), available: false });
+      continue;
+    }
+
+    let freeGroomers = 0;
+    for (const gid of groomerIds) {
+      // horario declarado del groomer (si tiene alguno para ese día)
+      const gSchedules = schedules.filter((sc) => sc.staffId === gid);
+      if (gSchedules.length > 0) {
+        const within = gSchedules.some(
+          (sc) => sc.isAvailable && toMin(sc.startTime) <= start && end <= toMin(sc.endTime),
+        );
+        if (!within) continue;
+      }
+      // bloqueos puntuales
+      const blocked = blocks.some(
+        (b) => b.staffId === gid && toMin(b.startTime) < end && start < toMin(b.endTime),
+      );
+      if (blocked) continue;
+      // citas existentes de ese groomer
+      const busy = active.some((a) => {
+        if (a.staffId !== gid) return false;
+        const aStart = toMin(a.startTime);
+        const aEnd = a.endTime ? toMin(a.endTime) : aStart + 60;
+        return aStart < end && start < aEnd;
+      });
+      if (!busy) freeGroomers++;
+    }
+
+    // citas sin groomer asignado consumen capacidad general
+    const unassignedOverlap = active.filter((a) => {
+      if (a.staffId) return false;
+      const aStart = toMin(a.startTime);
+      const aEnd = a.endTime ? toMin(a.endTime) : aStart + 60;
+      return aStart < end && start < aEnd;
+    }).length;
+
+    slots.push({ time: toTime(start), available: freeGroomers - unassignedOverlap > 0 });
+  }
+
+  return slots;
 }

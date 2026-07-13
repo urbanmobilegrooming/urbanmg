@@ -422,7 +422,10 @@ export async function saveMatchProfile(petId: string, input: { bio: string; look
   revalidatePath('/portal/matches');
 }
 
+const PET_MATCH_ENABLED = process.env.ENABLE_PET_MATCH === 'true';
+
 export async function discoverMatchCards(myPetId: string) {
+  if (!PET_MATCH_ENABLED) return [];
   const { client } = await requireClient();
 
   // Verify my pet
@@ -534,6 +537,7 @@ export async function recordMatchAction(myPetId: string, targetPetId: string, ac
 }
 
 export async function listMyMutualMatches() {
+  if (!PET_MATCH_ENABLED) return [];
   const { client } = await requireClient();
   const myPets = await db
     .select()

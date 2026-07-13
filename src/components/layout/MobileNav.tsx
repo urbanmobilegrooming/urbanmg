@@ -7,6 +7,7 @@ import {
   Menu, X, UserCircle, DollarSign, Truck, BarChart3,
   Settings, Shield, ClockAlert, MessageSquare, FileText,
   Package, UserPlus, RotateCcw,
+  Images, Boxes, Wrench, Bell, MessagesSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Role, roleAccess } from "@/lib/roles";
@@ -37,6 +38,11 @@ const allNavItems = [
   { label: "Payroll", href: "/dashboard/payroll", icon: DollarSign },
   { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
   { label: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { label: "Team Chat", href: "/dashboard/chat", icon: MessagesSquare },
+  { label: "Gallery", href: "/dashboard/gallery", icon: Images },
+  { label: "Inventory", href: "/dashboard/inventory", icon: Boxes },
+  { label: "Van Maintenance", href: "/dashboard/van-maintenance", icon: Wrench },
+  { label: "Alerts", href: "/dashboard/notifications", icon: Bell },
   { label: "Agreements", href: "/dashboard/agreements", icon: FileText },
   { label: "Products", href: "/dashboard/products", icon: Package },
   { label: "Discounts", href: "/dashboard/discounts", icon: DollarSign },

@@ -29,7 +29,6 @@ const NAV: NavItem[] = [
   { label: "Home", mobileLabel: "Home", href: "/portal", icon: Home, exact: true },
   { label: "Appointments", mobileLabel: "Appts", href: "/portal/appointments", icon: Calendar },
   { label: "My Pets", mobileLabel: "Pets", href: "/portal/pets", icon: Heart },
-  { label: "Pet Match", mobileLabel: "Match", href: "/portal/matches", icon: Search },
   { label: "Invoices", mobileLabel: "Invoices", href: "/portal/invoices", icon: Receipt },
   { label: "Rewards", mobileLabel: "Rewards", href: "/portal/loyalty", icon: Gift },
   { label: "Book", mobileLabel: "Book", href: "/book", icon: CalendarPlus },

@@ -92,3 +92,10 @@ export const marketingCampaigns = pgTable('marketing_campaigns', {
   businessId: uuid('business_id').references(() => businesses.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const remindersSent = pgTable('reminders_sent', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  entityId: uuid('entity_id').notNull(),
+  type: text('type').notNull(),
+  sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+});

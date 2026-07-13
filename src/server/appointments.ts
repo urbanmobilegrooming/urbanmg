@@ -4,6 +4,7 @@ import { and, desc, eq, gte, inArray, lte, ne } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import {
+  appointmentRepeatRules,
   appointmentServices,
   appointments,
   clients,
@@ -268,6 +269,122 @@ export async function createAppointment(input: AppointmentInput) {
   revalidatePath('/dashboard/appointments');
   revalidatePath('/dashboard/routes');
   return row;
+}
+
+/** Crea una cita y sus repeticiones futuras según la frecuencia (semanas). */
+export async function createRecurringAppointments(
+  input: AppointmentInput,
+  repeat: { frequency_weeks: number; end_date: string },
+) {
+  const { businessId } = await requireBusiness();
+  void businessId;
+  if (!repeat || repeat.frequency_weeks < 1 || repeat.frequency_weeks > 26) {
+    throw new Error('Invalid frequency');
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(repeat.end_date)) throw new Error('Invalid end date');
+
+  const first = await createAppointment(input);
+
+  await db.insert(appointmentRepeatRules).values({
+    appointmentId: first.id,
+    frequency: `every_${repeat.frequency_weeks}_weeks`,
+    endDate: repeat.end_date,
+  });
+
+  const created: string[] = [first.id];
+  const skipped: string[] = [];
+  const start = new Date(input.date + 'T00:00:00');
+  const end = new Date(repeat.end_date + 'T00:00:00');
+  let cursor = new Date(start);
+  let guard = 0;
+
+  while (guard++ < 26) {
+    cursor = new Date(cursor.getTime() + repeat.frequency_weeks * 7 * 86400000);
+    if (cursor > end) break;
+    const dateStr = cursor.toISOString().split('T')[0];
+    try {
+      const row = await createAppointment({ ...input, date: dateStr });
+      created.push(row.id);
+    } catch {
+      skipped.push(dateStr); // solapamiento u otro conflicto: se omite esa fecha
+    }
+  }
+
+  revalidatePath('/dashboard/appointments');
+  return { firstId: first.id, created: created.length, skipped };
+}
+
+/** Reprograma / edita una cita con las mismas validaciones y anti-solapamiento. */
+export async function updateAppointment(id: string, input: {
+  date?: string;
+  start_time?: string;
+  end_time?: string | null;
+  staff_id?: string | null;
+  van?: string | null;
+  price?: number | null;
+  address?: string | null;
+  city?: string | null;
+  zip?: string | null;
+  notes?: string | null;
+}) {
+  const { businessId } = await requireBusiness();
+
+  const [current] = await db
+    .select()
+    .from(appointments)
+    .where(and(eq(appointments.id, id), eq(appointments.businessId, businessId)))
+    .limit(1);
+  if (!current) throw new Error('Appointment not found');
+  if (['completed', 'cancelled'].includes(current.status)) {
+    throw new Error('Closed appointments cannot be edited');
+  }
+
+  const date = input.date ?? current.date;
+  const startTime = input.start_time ?? current.startTime;
+  const endTime = input.end_time !== undefined ? input.end_time : current.endTime;
+  const staffId = input.staff_id !== undefined ? input.staff_id : current.staffId;
+  const van = input.van !== undefined ? input.van : current.van;
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Invalid date');
+  if (!/^\d{2}:\d{2}(:\d{2})?$/.test(startTime)) throw new Error('Invalid time');
+  if (input.price != null && (input.price < 0 || input.price > 100000)) throw new Error('Invalid price');
+
+  if (staffId || van) {
+    const sameDay = await db
+      .select({ id: appointments.id, staffId: appointments.staffId, van: appointments.van, startTime: appointments.startTime, endTime: appointments.endTime, status: appointments.status })
+      .from(appointments)
+      .where(and(eq(appointments.businessId, businessId), eq(appointments.date, date)));
+    const newStart = startOf(startTime);
+    const newEnd = endOf(startTime, endTime ?? null);
+    for (const a of sameDay) {
+      if (a.id === id) continue;
+      if (['cancelled', 'no_show', 'completed'].includes(a.status)) continue;
+      const overlap = startOf(a.startTime) < newEnd && newStart < endOf(a.startTime, a.endTime);
+      if (!overlap) continue;
+      if (staffId && a.staffId === staffId) throw new Error('This groomer already has an appointment at that time');
+      if (van && a.van === van) throw new Error('This van is already booked at that time');
+    }
+  }
+
+  await db
+    .update(appointments)
+    .set({
+      date,
+      startTime,
+      endTime,
+      staffId,
+      van,
+      price: input.price !== undefined ? (input.price != null ? String(input.price) : null) : undefined,
+      address: input.address !== undefined ? input.address : undefined,
+      city: input.city !== undefined ? input.city : undefined,
+      zip: input.zip !== undefined ? input.zip : undefined,
+      notes: input.notes !== undefined ? input.notes : undefined,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(appointments.id, id), eq(appointments.businessId, businessId)));
+
+  revalidatePath('/dashboard/appointments');
+  revalidatePath('/dashboard/routes');
 }
 
 export async function updateAppointmentStatus(id: string, status: string) {

@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { createPublicBooking } from "@/server/booking";
+import { createPublicBooking, getAvailableSlots } from "@/server/booking";
 import {
   Check,
   ChevronRight,
@@ -518,6 +518,19 @@ function BookingFormInner({
   }
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [slots, setSlots] = useState<{ time: string; available: boolean }[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!form.date || !form.service_id) { setSlots([]); return; }
+    let alive = true;
+    setSlotsLoading(true);
+    getAvailableSlots(form.date, form.service_id, form.staff_id || null)
+      .then((s) => { if (alive) setSlots(s); })
+      .catch(() => { if (alive) setSlots([]); })
+      .finally(() => { if (alive) setSlotsLoading(false); });
+    return () => { alive = false; };
+  }, [form.date, form.service_id, form.staff_id]);
 
   async function handleSubmit() {
     setSaving(true);
@@ -757,17 +770,35 @@ function BookingFormInner({
                 className={inputClass}
               />
             </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-white/30">
-                Time *
-              </label>
-              <input
-                type="time"
-                value={form.time}
-                onChange={(e) => setForm({ ...form, time: e.target.value })}
-                className={inputClass}
-              />
-            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-white/30">
+              Time *
+            </label>
+            {!form.date ? (
+              <p className="text-xs text-white/40">Pick a date to see available times</p>
+            ) : slotsLoading ? (
+              <p className="text-xs text-white/40">Checking availability…</p>
+            ) : slots.filter((s) => s.available).length === 0 ? (
+              <p className="text-xs text-amber-300">No times available that day — please try another date</p>
+            ) : (
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                {slots.filter((s) => s.available).map((s) => (
+                  <button
+                    key={s.time}
+                    type="button"
+                    onClick={() => setForm({ ...form, time: s.time })}
+                    className={`rounded-xl border-2 py-2 text-center text-xs font-bold transition-all ${
+                      form.time === s.time
+                        ? "border-[#f2c037] bg-[#f2c037] text-[#0B0B0B]"
+                        : "border-white/15 text-white/70 hover:border-[#f2c037]/60"
+                    }`}
+                  >
+                    {s.time}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {staff.length > 0 && (
             <div>
